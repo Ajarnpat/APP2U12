@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>12.2 | Charged-Particle Force & Motion Visualizer</title>
+<style>
+
+:root{--ink:#173b64;--blue:#20568b;--wash:#e7f4ff;--border:#c3dced;--muted:#607e98;--teal:#087b68}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#eef6fc}
+button,input{font:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid #4ca7d9;outline-offset:2px}
+.app{display:flex;flex-direction:column;height:100dvh;min-height:0;overflow:hidden}
+.topbar{flex:none;height:64px;padding:8px clamp(16px,2.2vw,30px);background:#fff;border-bottom:1px solid #d9e9f4;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.eyebrow{font-size:10px;letter-spacing:.13em;font-weight:800;text-transform:uppercase;color:#6d8ca7}
+.topbar h1{margin:0;font-size:clamp(20px,2vw,27px);letter-spacing:-.045em;line-height:1.22}
+.header-tag{font-size:11px;font-weight:750;color:#276190;background:#eaf5fd;border:1px solid #cae2f3;border-radius:25px;padding:7px 11px;white-space:nowrap}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,490px);flex:1;min-height:0}
+.stage-wrap{display:flex;flex-direction:column;min-width:0;min-height:0;padding:13px;background:#edf7fd}
+.stage{position:relative;min-height:0;flex:1;overflow:hidden;border-radius:15px;background:radial-gradient(ellipse 85% 82% at 54% 44%,#f6fbff 0%,#e6f4ff 65%,#d9edfb 100%);border:1px solid #bfdced;box-shadow:inset 0 0 0 1px #ffffff99}
+canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+canvas:active{cursor:grabbing}
+.overlay{position:absolute;pointer-events:none}
+.top-left{top:16px;left:16px}.top-right{top:16px;right:19px;text-align:right}
+.small-caption{font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:#6085a1}
+.big-number{margin-top:3px;font-size:25px;letter-spacing:-.04em;font-weight:760;font-variant-numeric:tabular-nums}
+.tiny{font-size:11px;color:#547493;font-weight:650}
+.b-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:24px;background:#fffffff0;border:1px solid #c3deef;font-size:11px;font-weight:760;color:#18477a;box-shadow:0 2px 8px #9dbed51f}.arrow{font-size:16px}
+.wire-readout{position:absolute;top:58px;left:16px;pointer-events:none;background:#fffffff0;border:1px solid #d5e6ed;border-radius:7px;padding:5px 9px;color:#aa5325;font-weight:780;font-size:11px}
+.view-info{position:absolute;bottom:14px;left:16px;right:16px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;pointer-events:none}
+.symbol-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 10px;background:#ffffffdd;border:1px solid #c6e0f2;box-shadow:0 2px 12px #779bb01a;border-radius:9px;font-size:12px;font-weight:690;backdrop-filter:blur(7px);max-width:390px}.symbol-glyph{font-size:24px;line-height:1;color:#1a4f82;font-weight:830}
+.hint{color:#567a98;font-size:11px;line-height:1.5;text-align:right;text-shadow:0 1px white}
+.stage-foot{flex:none;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;color:#547693;font-size:11px;padding:9px 2px 1px}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.legend-item{display:inline-flex;gap:5px;align-items:center}.legend-icon{font-weight:850;color:#17467b;font-size:17px;line-height:1}
+.color-mark{width:15px;height:4px;border-radius:3px;display:inline-block}.color-mark.copper{background:#cf6c2a}.color-mark.teal{background:#09846f}
+.panel{min-height:0;padding:12px 14px;background:#fff;border-left:1px solid #d2e4f2;display:flex;flex-direction:column;gap:9px;overflow:auto}
+.controls-heading{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.panel h2{font-size:17px;margin:0;letter-spacing:-.03em}
+.controls-heading .short-help{max-width:260px;text-align:right;font-size:10.5px;line-height:1.3;color:#64819b}
+.control-card{border:1px solid #d7e7f2;background:#f9fcff;border-radius:10px;padding:10px 11px}
+.control-card.camera-card{background:#f6fbff}
+.card-head{display:flex;align-items:center;justify-content:space-between;min-height:18px;margin-bottom:6px;gap:10px}
+.card-head strong{font-size:11px;letter-spacing:.075em;font-weight:840;text-transform:uppercase;color:#567b9a}
+.card-head .mini-toggle{font-size:11px}
+.view-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.view-btn{border:1px solid #c4ddea;border-radius:8px;background:#fff;color:#244e76;padding:5px 3px;display:flex;gap:1px;align-items:center;justify-content:center;flex-direction:column;min-height:53px;cursor:pointer;font-size:10.5px;font-weight:740;transition:background .15s,border-color .15s}
+.view-btn:hover{background:#eaf6ff;border-color:#8bbfe1}.view-btn.active{border-color:#1d679f;background:#dff1ff;box-shadow:inset 0 0 0 1px #1d679f}
+.view-btn .symbol{font-size:18px;line-height:1.15;color:#1c558c}.mini{font-size:9px;color:#6a8ba2;font-weight:550}
+.range-row{display:grid;grid-template-columns:155px minmax(0,1fr) 60px;align-items:center;gap:9px;min-height:34px}
+.range-row label{font-size:11.5px;font-weight:700;color:#1f4166}
+.range-row output{text-align:right;font-size:11.5px;font-weight:790;font-variant-numeric:tabular-nums;color:#235d92;white-space:nowrap}
+.range-row input[type=range]{width:100%;margin:0;accent-color:#1d6da4;cursor:pointer}
+.switches{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:7px;min-height:24px}
+.mini-toggle{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:700;font-size:11px;color:#244c74;cursor:pointer}
+.mini-toggle input{width:15px;height:15px;margin:0;accent-color:#146da4;cursor:pointer}
+.action-btn{margin-left:auto;background:white;border:1px solid #b4d2e8;border-radius:7px;font-weight:760;color:#225f8c;padding:5px 10px;font-size:10.5px;cursor:pointer}
+.action-btn:hover{background:#e9f6ff;border-color:#66a9d3}
+.value-box{display:flex;justify-content:space-between;gap:7px;margin:7px 0 0;padding:8px 10px;background:#ecf8f7;border:1px solid #b6dfd5;border-radius:8px;align-items:center}
+.value-box .value{font-size:20px;letter-spacing:-.03em;font-weight:820;color:#087b68;font-variant-numeric:tabular-nums;white-space:nowrap}
+.value-box .value-title{font-size:11px;font-weight:800;color:#286a67}
+.value-box .value-sub{font-size:10px;color:#668e8e;margin-top:1px}
+.panel-note{padding:2px 3px;color:#587b97;font-size:10.5px;line-height:1.4}
+.panel-note b{color:#315c79}
+/* Shorter screens: keep all controls visible by tightening vertical spacing. */
+@media (min-width:1000px) and (max-height:780px){
+ .topbar{height:54px}.panel{gap:6px;padding:8px 11px}.control-card{padding:7px 9px}.card-head{margin-bottom:3px}.range-row{min-height:30px}.switches{margin-top:4px}.view-btn{min-height:45px}.panel-note{font-size:10px}.stage-wrap{padding:9px}.stage-foot{padding:5px 1px 0}
+}
+@media (max-width:1120px) and (min-width:921px){.workspace{grid-template-columns:minmax(0,1fr) 415px}.panel{padding:9px}.range-row{grid-template-columns:132px minmax(0,1fr) 54px;gap:6px}.switches{gap:8px}}
+@media (min-width:921px) and (max-height:700px){
+ .topbar{height:48px}.topbar h1{font-size:21px}
+ .panel{padding:6px 9px;gap:4px}.controls-heading h2{font-size:15px}.controls-heading .short-help{display:none}
+ .control-card{padding:5px 8px}.card-head{min-height:15px;margin-bottom:2px}.card-head strong{font-size:10px}
+ .view-btn{min-height:39px;font-size:9.5px}.view-btn .symbol{font-size:16px}
+ .range-row{min-height:25px}.range-row label,.range-row output{font-size:10.5px}
+ .switches{min-height:20px;margin-top:2px;gap:9px}.mini-toggle{font-size:10px}.mini-toggle input{width:14px;height:14px}
+ .value-box{padding:4px 8px;margin-top:4px}.value-box .value{font-size:17px}.value-box .value-title{font-size:10px}.value-box .value-sub{font-size:9px}
+ .action-btn{padding:3px 8px;font-size:10px}.panel-note{display:none}
+ .stage-wrap{padding:6px}.stage-foot{font-size:10px;padding:4px 0 0}
+}
+@media(max-width:920px){.app{height:auto;min-height:100dvh;overflow:visible}.workspace{display:flex;flex-direction:column}.stage-wrap{min-height:480px}.stage{flex:none;height:58vh;min-height:410px}.panel{overflow:visible;border-left:0;border-top:1px solid #d2e4f2;padding:14px;gap:10px}.controls-heading .short-help{max-width:none}.stage-foot{padding-bottom:6px}.range-row{grid-template-columns:155px minmax(0,1fr) 64px}}
+@media(max-width:580px){.topbar{height:60px;padding:8px 12px}.topbar h1{font-size:21px}.header-tag{display:none}.stage-wrap{padding:8px;min-height:400px}.stage{height:55vh;min-height:360px}.view-grid{grid-template-columns:repeat(2,1fr)}.view-btn{min-height:45px}.range-row{grid-template-columns:115px minmax(0,1fr) 55px;gap:6px}.range-row label{font-size:11px}.control-card{padding:9px}.controls-heading .short-help{display:none}.top-left{top:12px;left:10px}.top-right{top:12px;right:10px}.wire-readout{top:53px;left:10px}.view-info{bottom:10px;left:10px;right:10px}.symbol-chip{font-size:10.5px;max-width:215px}.symbol-glyph{font-size:19px}.hint{font-size:9.5px;max-width:130px}.big-number{font-size:22px}}
+
+/* Prediction modes sit alongside the original free explorer. */
+.topbar{gap:12px}.mode-nav{display:flex;gap:5px;margin-left:auto;background:#e9f4fb;border:1px solid #ccdfec;border-radius:10px;padding:4px}
+.mode-btn{background:none;color:#345f80;border:1px solid transparent;border-radius:7px;padding:7px 11px;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}.mode-btn:hover{background:#fff}.mode-btn.active{background:#fff;border-color:#c2ddec;color:#134c7e;box-shadow:0 1px 4px #81a8c333}
+.panel-inner,.quiz-panel{display:flex;flex-direction:column;gap:9px;min-height:0;flex:none}
+.quiz-panel h2{font-size:19px;margin:1px 0 0;letter-spacing:-.04em}
+.quiz-head,.quiz-step,.quiz-navigation,.quiz-footer,.known-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.quiz-counter{border-radius:20px;background:#eaf5fc;border:1px solid #cae2ee;padding:5px 10px;font-weight:800;color:#1c5888;font-size:12px}
+.quiz-progress{display:flex;gap:4px}.quiz-progress span{height:5px;flex:1;border-radius:6px;background:#d6e6f0}.quiz-progress span.done{background:#6d9ab7}.quiz-progress span.correct{background:#0a866d}.quiz-progress span.current{outline:2px solid #226b9e;outline-offset:2px}
+.quiz-prompt{border:1px solid #d5e6f2;background:#f4faff;border-radius:11px;padding:11px 12px}.q-tag{font-size:10px;letter-spacing:.075em;text-transform:uppercase;color:#547b99;font-weight:820}.quiz-question{font-size:16px;font-weight:780;line-height:1.32;margin:6px 0 8px}.known-row{justify-content:flex-start;flex-wrap:wrap;font-size:11px;color:#315e80;font-weight:680}.known-chip{background:white;border:1px solid #cce1f0;padding:5px 7px;border-radius:6px}.known-chip i{font-family:Georgia,serif;font-size:13px}
+.quiz-step strong{font-size:12px}.quiz-step span{font-size:10px;color:#66869e}
+.answer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.answer-btn{display:flex;align-items:center;gap:7px;text-align:left;background:white;border:1px solid #c7ddeb;border-radius:8px;padding:10px 7px;cursor:pointer;font-weight:680;color:#255377;min-width:0;font-size:11px;line-height:1.1}.answer-btn:hover:not(:disabled){background:#eaf7ff;border-color:#69a4c7}.answer-btn b{font-size:22px;color:#205783;min-width:26px;text-align:center;line-height:1}.answer-btn.selected{background:#e2f2ff;border-color:#1d689e;box-shadow:inset 0 0 0 1px #1d689e}.answer-btn.correct{background:#e8f8f3;border-color:#05916c}.answer-btn.wrong{background:#fff0eb;border-color:#bf573c}.answer-btn:disabled{cursor:default;opacity:.8}
+.quiz-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.primary-btn,.secondary-btn{border-radius:8px;padding:10px 11px;font-weight:780;font-size:11.5px;cursor:pointer}.primary-btn{background:#206b9f;border:1px solid #206b9f;color:white}.primary-btn:hover:not(:disabled){background:#155683}.secondary-btn{background:white;border:1px solid #bfd8e8;color:#24628f}.secondary-btn:hover:not(:disabled){background:#eef8ff}.primary-btn:disabled,.secondary-btn:disabled{opacity:.38;cursor:default}
+.quiz-feedback{border:1px solid #c9dfeb;background:#f7fbff;border-radius:9px;padding:10px 11px}.quiz-feedback.success{border-color:#9acfbf;background:#f0faf7}.quiz-feedback.retry{border-color:#e0c5b9;background:#fff8f3}.feedback-title{font-size:12px;font-weight:850;margin-bottom:4px}.feedback-body{font-size:11.5px;line-height:1.45;color:#395c74}
+.quiz-navigation{margin-top:2px}.quiz-navigation button{padding:8px 10px}
+.quiz-footer{font-size:10.5px;color:#476f8d;font-weight:700}.quiz-cam{display:flex;gap:5px}.quiz-cam button{border:1px solid #b9d8e9;background:#f3faff;border-radius:6px;padding:5px 7px;color:#246291;font-weight:780;cursor:pointer;font-size:10px}
+.quiz-advice{margin:0;color:#5c7e97;font-size:10.5px;line-height:1.45}
+.quiz-stage-hud{position:absolute;pointer-events:none;left:15px;right:15px;top:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.quiz-hud-pill,.quiz-axis-key{background:#ffffffea;border:1px solid #c1dceb;border-radius:9px;padding:7px 10px;color:#29587b;font-size:11px;font-weight:770}.quiz-axis-key b{color:#135c91}
+@media(min-width:921px) and (max-height:780px){.panel-inner,.quiz-panel{gap:6px}.quiz-prompt{padding:9px 10px}.quiz-question{font-size:14px;margin:4px 0 6px}.answer-btn{padding:8px 6px}.quiz-feedback{padding:8px 9px}.quiz-advice{font-size:10px}.mode-btn{padding:5px 9px}}
+@media(min-width:921px) and (max-height:680px){.quiz-panel{gap:4px}.quiz-prompt{padding:7px 9px}.answer-btn{padding:6px 5px}.quiz-question{font-size:13px;margin:2px 0 4px}.quiz-actions button{padding:7px}.quiz-feedback{padding:5px 8px}.quiz-advice{display:none}.quiz-navigation button{padding:6px}}
+@media(max-width:1090px){.header-tag{display:none}.mode-btn{padding:6px 8px}}
+@media(max-width:600px){.topbar{height:auto;min-height:87px;flex-wrap:wrap;justify-content:center;gap:4px}.topbar>div:first-child{width:100%;text-align:center}.mode-nav{margin:0 auto}.mode-btn{font-size:11px}.quiz-stage-hud{top:8px;left:8px;right:8px}.quiz-axis-key{font-size:9px}.quiz-panel{gap:8px}.answer-btn{font-size:10px;padding:8px 5px}.answer-btn b{min-width:19px;font-size:20px}}
+
+
+/* Animated particle module — compact controls and a legible, orbiting 3D scene. */
+.color-mark.violet{background:#865caa}
+.particle-panel{display:flex;flex-direction:column;gap:8px;min-height:0;flex:none}
+.particle-panel .control-card{padding:8px 10px}
+.particle-panel .card-head{margin-bottom:5px}
+.particle-help{font-size:10px;color:#64839b;font-weight:680;text-align:right;line-height:1.25}
+.particle-segmented{display:flex;gap:4px;padding:3px;border:1px solid #c9deec;background:#eaf5fc;border-radius:8px}
+.particle-segmented button{flex:1;border:1px solid transparent;background:transparent;color:#3b6483;border-radius:6px;font-size:11px;font-weight:790;padding:7px 6px;cursor:pointer}
+.particle-segmented button.active{background:white;color:#174f7c;border-color:#bbd8ea;box-shadow:0 1px 4px #a9c5d350}
+.particle-sign{display:grid;grid-template-columns:155px 1fr;gap:9px;align-items:center;margin-bottom:4px}
+.particle-sign>span{font-size:11.5px;font-weight:730}
+.particle-sign .particle-segmented button{padding:4px}
+.particle-panel .range-row{grid-template-columns:129px minmax(0,1fr) 116px;min-height:29px;gap:7px}
+.particle-panel .range-row output{font-size:10.5px}
+.particle-play-controls{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:6px}
+.particle-play-controls button{padding:8px 6px}
+.particle-panel .switches{gap:8px 12px;margin:0}
+.particle-appearance .mini-toggle{font-size:10.7px}
+.particle-appearance .mini-toggle input{width:14px;height:14px}
+.particle-results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.particle-results-grid>div{border:1px solid #d6e8f1;border-radius:7px;background:#fff;display:flex;flex-direction:column;gap:3px;padding:6px 8px;min-width:0}
+.particle-results-grid span{font-size:10px;color:#577c96;font-weight:740}
+.particle-results-grid b{font-size:14px;color:#1f5785;white-space:nowrap;font-variant-numeric:tabular-nums}
+.particle-equation{font-size:10px;color:#477490;font-weight:720;line-height:1.25;margin-top:6px}
+.particle-view-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.particle-view-buttons button{font-size:11px;font-weight:760;padding:7px 3px;background:white;border:1px solid #c4ddeb;color:#245c89;border-radius:7px;cursor:pointer}
+.particle-view-buttons button:hover{background:#e3f3ff;border-color:#6daed7}
+.particle-stage-hud{position:absolute;inset:13px 14px auto;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.particle-hud-card{display:flex;flex-direction:column;gap:4px;background:#ffffffeb;border:1px solid #bcd9eb;border-radius:9px;padding:8px 11px;box-shadow:0 2px 8px #668dad1c}
+.particle-hud-card b{font-size:12px;color:#1b5280}.particle-hud-card span{font-size:10.5px;color:#537e9e;font-weight:700}
+.particle-hud-time{text-align:right}
+.particle-panel .panel-note{line-height:1.36;padding:0 2px}
+@media(min-width:921px) and (max-height:800px){
+ .particle-panel{gap:5px}.particle-panel .control-card{padding:6px 9px}.particle-panel .card-head{margin-bottom:3px}
+ .particle-panel .range-row{min-height:27px}.particle-segmented button{padding:5px}.particle-play-controls button{padding:6px}
+ .particle-results-grid{gap:4px}.particle-results-grid>div{padding:4px 7px}.particle-results-grid b{font-size:12px}
+ .particle-panel .switches{gap:5px 9px}.particle-appearance .mini-toggle{font-size:10px}
+ .particle-view-buttons button{padding:5px 2px}.particle-panel .panel-note{font-size:9.5px}
+}
+@media(min-width:921px) and (max-height:680px){
+ .particle-panel{gap:4px}.particle-panel .control-card{padding:4px 7px}.particle-panel .range-row{min-height:23px}
+ .particle-panel .card-head{margin-bottom:2px}.particle-sign{margin-bottom:2px}
+ .particle-panel .particle-help{font-size:9px}.particle-results-grid>div{padding:3px 6px}
+ .particle-panel .panel-note{display:none}.particle-segmented button,.particle-view-buttons button{padding:3px 5px}
+}
+@media(min-width:921px) and (min-height:681px) and (max-height:760px){.particle-panel .control-card{padding:4px 8px}.particle-panel .range-row{min-height:26px}.particle-panel .particle-segmented button{padding:4px 5px}.particle-panel .particle-results-grid>div{padding:4px 6px}.particle-panel .particle-view-buttons button{padding:5px 3px}}
+@media(max-width:1090px) and (min-width:921px){.particle-panel .range-row{grid-template-columns:113px minmax(0,1fr) 107px}.particle-sign{grid-template-columns:113px 1fr}}
+@media(max-width:600px){.particle-panel .range-row{grid-template-columns:102px minmax(0,1fr) 104px}.particle-sign{grid-template-columns:102px 1fr}.particle-stage-hud{inset:8px 8px auto}.particle-hud-card{padding:6px}.particle-hud-card span{font-size:9px}}
+
+
+/* Species-aware motion controls and quantitative orbit comparisons. */
+.particle-species-row{display:grid;grid-template-columns:83px minmax(0,1fr) 40px;gap:7px;align-items:center}
+.particle-species-row label{font-size:11px;font-weight:780;color:#214466}
+.particle-species-row select{appearance:auto;width:100%;min-width:0;background:white;border:1px solid #bcd8e8;border-radius:7px;color:#214c73;padding:7px 5px;font-size:11.5px;font-weight:760;cursor:pointer}
+.particle-charge-badge{background:#e3f1fc;border:1px solid #bedbed;padding:5px 4px;text-align:center;border-radius:6px;font-size:11px;font-weight:850;color:#255b85}
+.particle-species-meta{font-size:10px;color:#517894;font-weight:710;margin-top:5px;letter-spacing:.005em}
+.particle-results-grid b{font-size:13px}
+.particle-scaling .particle-segmented button{padding:5px}
+@media (min-width:921px) and (max-height:800px){
+ .particle-panel{gap:5px}.particle-panel .control-card{padding:5px 8px}
+ .particle-panel .card-head{margin-bottom:3px}
+ .particle-species-row select{padding:4px 5px}
+ .particle-species-meta{margin-top:3px;font-size:9px}
+ .particle-scaling .particle-segmented button{padding:4px}
+}
+@media (min-width:921px) and (max-height:680px){
+ .particle-panel{gap:3px}.particle-panel .control-card{padding:3px 7px}
+ .particle-panel .range-row{min-height:21px}
+ .particle-results-grid>div{padding:2px 5px;gap:1px}
+ .particle-results-grid b{font-size:12px}
+ .particle-species-row select{padding:3px}
+ .particle-species-meta{margin-top:2px;font-size:9px}
+}
+
+
+/* Particle camera controls live alongside the canvas, instead of pushing SI data below the fold. */
+.particle-camera-toolbar{display:flex;align-items:center;gap:5px;flex-shrink:0;margin-left:auto}
+.particle-camera-toolbar button{border:1px solid #bad7e9;background:#fff;color:#235d8a;border-radius:7px;padding:4px 8px;font-size:10.5px;font-weight:790;white-space:nowrap;cursor:pointer}
+.particle-camera-toolbar button:hover{background:#def1fe;border-color:#82b9de}
+@media(max-width:920px){.particle-camera-toolbar{margin:0 0 0 auto}}
+@media(max-width:540px){.particle-camera-toolbar{margin-left:0}.particle-camera-toolbar button{padding:4px 5px;font-size:9px}}
+@media(min-width:921px) and (max-height:780px){.particle-panel .panel-note{font-size:9px;line-height:1.22}}
+
+@media(min-width:921px) and (max-height:780px){
+ .particle-panel .particle-note{display:none}
+ .particle-panel{gap:4px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar"><div><div class="eyebrow">Interactive physics • Uniform magnetic field</div><h1>12.2 · Charge &amp; Field Visualizer</h1></div><nav class="mode-nav" aria-label="Activity mode">
+<button type="button" class="mode-btn active" data-mode="explore">Explore</button>
+<button type="button" class="mode-btn" data-mode="wire">Wire questions (12.3 preview)</button>
+<button type="button" class="mode-btn" data-mode="charge">Charge questions</button>
+<button type="button" class="mode-btn" data-mode="particle">Particle motion</button>
+</nav><div class="header-tag">Lesson copy · based on V6</div></header>
+<div class="workspace">
+<main class="stage-wrap" aria-label="Interactive magnetic field view">
+<div class="stage" id="stage">
+<canvas id="fieldCanvas" aria-label="Drag empty space to orbit the field and wire together. Drag the orange wire tip to rotate the wire, or its midpoint to reposition it."></canvas>
+<div class="overlay top-left" id="exploreTopLeft"><div class="b-pill"><span class="arrow">→</span> Uniform field, <i>B</i> in +x</div></div>
+<div class="wire-readout" id="wireBadge">Wire θ = 90.0°</div>
+<div class="particle-stage-hud" id="particleStageHud" hidden><div class="particle-hud-card"><b id="particleHudMode">Circular orbit</b><span id="particleHudDetail">B along +x · proton</span></div><div class="particle-hud-card particle-hud-time"><b id="particleHudTime">t = 0.0 ns</b><span id="particleHudProgress">0.00 revolutions</span></div></div>
+<div class="quiz-stage-hud" id="quizStageHud" hidden><span class="quiz-hud-pill" id="quizHudText">Predict the missing vector</span><span class="quiz-axis-key">Reference: <b>+x →</b> &nbsp;<b>+y ↑</b> &nbsp;<b>+z ⊙</b></span></div>
+<div class="overlay top-right" id="exploreTopRight"><div class="small-caption">Viewing angle to +B</div><div class="big-number" id="angleReadout">90.0°</div><div class="tiny" id="angleNote">Side-on view</div></div>
+<div class="view-info" id="exploreViewInfo"><div class="symbol-chip"><span class="symbol-glyph" id="stateGlyph">→</span><span id="stateText">Field lines viewed from the side</span></div><div class="hint">Drag empty space: rotate view<br>Drag wire tip: orient · Centre: move</div></div>
+</div>
+<div class="stage-foot"><div class="legend" id="exploreLegend"><span class="legend-item"><span class="legend-icon">→</span> Magnetic field</span><span class="legend-item"><span class="color-mark copper"></span> Wire &amp; current</span><span class="legend-item"><span class="color-mark teal"></span> Force</span><span class="legend-item">⊙ toward you &nbsp; ⊗ away from you</span></div><div class="legend" id="particleLegend" hidden><span class="legend-item"><span class="legend-icon">→</span> Field</span><span class="legend-item"><span class="color-mark violet"></span> Trajectory</span><span class="legend-item"><span class="color-mark copper"></span> Velocity</span><span class="legend-item"><span class="color-mark teal"></span> Force</span></div><div class="particle-camera-toolbar" id="particleCameraToolbar" hidden aria-label="Particle camera presets"><button type="button" id="particleFace">⊙ Along field</button><button type="button" id="particleSide">→ Side</button><button type="button" id="particleThreeD">↗ 3D</button></div><div id="stageFootNote">Display geometry is illustrative; numerical values use SI units.</div></div>
+</main>
+<aside class="panel" aria-label="Magnetic field controls"><div class="panel-inner" id="explorePanel">
+  <div class="controls-heading"><h2>Explore the field</h2><div class="short-help">Rotate the scene to change your view; rotate the wire to change its angle to <i>B</i>.</div></div>
+  <section class="control-card camera-card" aria-label="Camera presets">
+    <div class="card-head"><strong>Quick camera views</strong></div>
+    <div class="view-grid">
+      <button class="view-btn" data-preset="side" type="button"><span class="symbol">→</span>Side</button>
+      <button class="view-btn" data-preset="toward" type="button"><span class="symbol">⊙</span>Toward you</button>
+      <button class="view-btn" data-preset="away" type="button"><span class="symbol">⊗</span>Away from you</button>
+      <button class="view-btn" data-preset="angled" type="button"><span class="symbol">↗</span>3D angle</button>
+    </div>
+  </section>
+  <section class="control-card" aria-label="Current-carrying wire controls">
+    <div class="card-head"><strong>Current-carrying wire</strong><label class="mini-toggle">Show wire <input type="checkbox" id="showWire" checked></label></div>
+    <div class="range-row"><label for="wireAngle">Angle to field, θ</label><input type="range" min="0" max="180" step="1" id="wireAngle" value="90"><output id="wireAngleOutput">90.0°</output></div>
+    <div class="range-row"><label for="wireTwist">Rotate about field, φ</label><input type="range" min="-180" max="180" step="1" id="wireTwist" value="35"><output id="wireTwistOutput">35.0°</output></div>
+    <div class="switches"><label class="mini-toggle">Angle arc <input type="checkbox" id="showAngleArc" checked></label><label class="mini-toggle">Current arrow <input type="checkbox" id="showCurrent" checked></label><button type="button" class="action-btn" id="resetWire">Reset wire</button></div>
+  </section>
+  <section class="control-card" aria-label="Magnetic force controls">
+    <div class="card-head"><strong>Magnetic force on the wire</strong></div>
+    <div class="range-row"><label for="current">Current, I</label><input type="range" min="-5" max="5" step="0.1" id="current" value="2"><output id="currentOutput">+2.0 A</output></div>
+    <div class="range-row"><label for="fieldStrength">Field strength, B</label><input type="range" min="0" max="2" step="0.05" id="fieldStrength" value="0.8"><output id="fieldStrengthOutput">0.80 T</output></div>
+    <div class="switches"><label class="mini-toggle">Force arrows <input type="checkbox" id="showForce" checked></label><label class="mini-toggle">Show force per metre <input type="checkbox" id="showMagnitude" checked></label></div>
+    <div class="value-box" id="forceReadout" aria-live="off"><div><div class="value-title">Force per metre, F/L</div><div class="value-sub" id="forceFormula">|I|B sinθ</div></div><output class="value" id="forceValue">1.60 N/m</output></div>
+  </section>
+  <section class="control-card" aria-label="Appearance and camera controls">
+    <div class="card-head"><strong>Appearance &amp; camera</strong></div>
+    <div class="range-row"><label for="density">Field-line density</label><input id="density" type="range" min="3" max="9" step="2" value="5"><output id="densityOutput">5 × 5</output></div>
+    <div class="range-row"><label for="zoom">Camera distance</label><input id="zoom" type="range" min="65" max="180" step="1" value="100"><output id="zoomOutput">100%</output></div>
+    <div class="switches"><label class="mini-toggle">Auto rotate <input type="checkbox" id="autoRotate"></label><label class="mini-toggle">3D outline <input type="checkbox" id="showBox" checked></label><label class="mini-toggle">Field arrows <input type="checkbox" id="showArrows" checked></label></div>
+  </section>
+  <div class="panel-note"><b>Drag the canvas</b> to orbit the whole scene. Drag the <b>orange tip</b> to orient the wire; drag its <b>middle handle</b> to move it. A negative current reverses the force. ⊙ points out of the screen, ⊗ into it.</div>
+</div>
+<div class="quiz-panel" id="quizPanel" hidden>
+  <div class="quiz-head"><div><div class="eyebrow" id="quizEyebrow">Magnetic force · prediction practice</div><h2 id="quizTitle">Wire questions</h2></div><div class="quiz-counter" id="quizCounter">1 / 8</div></div>
+  <div class="quiz-progress" id="quizProgress" aria-label="Question progress"></div>
+  <section class="quiz-prompt" aria-live="polite">
+    <div class="q-tag" id="quizSituation">Current-carrying wire</div>
+    <div class="quiz-question" id="quizQuestion">Predict the missing direction.</div>
+    <div class="known-row" id="quizKnown">Given: current and field</div>
+  </section>
+  <div class="quiz-step"><strong>Choose a direction</strong><span>Relative to the <b>Front</b> view</span></div>
+  <div class="answer-grid" id="answerGrid" role="group" aria-label="Choose the missing vector direction">
+    <button type="button" class="answer-btn" data-answer="px"><b>→</b><span>Right (+x)</span></button>
+    <button type="button" class="answer-btn" data-answer="nx"><b>←</b><span>Left (−x)</span></button>
+    <button type="button" class="answer-btn" data-answer="py"><b>↑</b><span>Up (+y)</span></button>
+    <button type="button" class="answer-btn" data-answer="ny"><b>↓</b><span>Down (−y)</span></button>
+    <button type="button" class="answer-btn" data-answer="pz"><b>⊙</b><span>Out (+z)</span></button>
+    <button type="button" class="answer-btn" data-answer="nz"><b>⊗</b><span>In (−z)</span></button>
+  </div>
+  <div class="quiz-actions"><button type="button" id="checkPrediction" class="primary-btn" disabled>Check prediction</button><button type="button" id="revealPrediction" class="secondary-btn">Show answer</button></div>
+  <div id="quizFeedback" class="quiz-feedback" aria-live="polite" hidden><div class="feedback-title" id="feedbackTitle"></div><div class="feedback-body" id="feedbackBody"></div></div>
+  <div class="quiz-navigation"><button id="prevQuiz" type="button" class="secondary-btn">← Previous</button><button id="resetQuiz" type="button" class="secondary-btn">Restart set</button><button id="nextQuiz" type="button" class="primary-btn">Next →</button></div>
+  <div class="quiz-footer"><span id="quizScore">0 / 0 correct on first attempt</span><span class="quiz-cam"><button type="button" id="quizFront">Front view</button><button type="button" id="quizAngled">3D angle</button></span></div>
+  <p class="quiz-advice">Drag the background to rotate all vectors together. Choices refer to the original <b>Front view</b>: +x right, +y up, +z towards you. All questions use perpendicular vectors.</p>
+</div>
+<div class="particle-panel" id="particlePanel" hidden>
+  <div class="controls-heading"><h2>Charged-particle motion</h2><div class="short-help">Follow a moving charge inside a uniform magnetic field.</div></div>
+  <section class="control-card particle-type" aria-label="Choose the type of path">
+    <div class="card-head"><strong>Type of motion</strong><span class="particle-help" id="particleTypeDescription">Velocity perpendicular to B</span></div>
+    <div class="particle-segmented"><button type="button" id="particleCircle" class="active" aria-pressed="true">Circular motion</button><button type="button" id="particleHelix" aria-pressed="false">Helical motion</button></div>
+  </section>
+  <section class="control-card" aria-label="Particle initial conditions">
+    <div class="card-head"><strong>Particle and field</strong><span class="particle-help" id="particleStatus">Physical mass and charge</span></div>
+    <div class="particle-species-row"><label for="particleSpecies">Particle</label><select id="particleSpecies" aria-label="Particle species"><option value="electron">Electron, e⁻</option><option value="proton" selected>Proton, p⁺</option><option value="heplus">Helium ion, He⁺</option><option value="heminus">Helium ion, He⁻</option><option value="alpha">Alpha particle, He²⁺</option></select><span id="particleChargeBadge" class="particle-charge-badge">+e</span></div>
+    <div class="particle-species-meta" id="particleSpeciesMeta">m = 1.673 × 10⁻²⁷ kg · q = +1.602 × 10⁻¹⁹ C</div>
+    <div class="range-row"><label for="particleSpeed">Speed, v</label><input id="particleSpeed" type="range" min="0.6" max="1.8" step="0.1" value="1.2"><output id="particleSpeedOutput">1.2 × 10⁶ m/s</output></div>
+    <div class="range-row"><label for="particleField">Field strength, B</label><input id="particleField" type="range" min="0.6" max="1.2" step="0.05" value="0.8"><output id="particleFieldOutput">0.80 T</output></div>
+    <div class="range-row"><label for="particleAngle">Angle to B, α</label><input id="particleAngle" type="range" min="45" max="90" step="1" value="65" disabled><output id="particleAngleOutput">90°</output></div>
+  </section>
+  <section class="control-card" aria-label="Particle playback and animation">
+    <div class="card-head"><strong>Playback</strong><span class="particle-help" id="particlePlaybackStatus">Ready</span></div>
+    <div class="particle-play-controls"><button type="button" id="particlePlay" class="primary-btn">Pause <span aria-hidden="true">Ⅱ</span></button><button type="button" id="particleRestart" class="secondary-btn">↺ Restart</button><button type="button" id="particleStep" class="secondary-btn">Step 30°</button></div>
+    <div class="range-row"><label for="particlePlaybackSpeed">Playback rate</label><input id="particlePlaybackSpeed" type="range" min="0.25" max="2" step="0.25" value="1"><output id="particlePlaybackOutput">1.00×</output></div>
+  </section>
+  <section class="control-card particle-appearance" aria-label="Show or hide elements">
+    <div class="card-head"><strong>Show in simulation</strong></div>
+    <div class="switches"><label class="mini-toggle">Full path <input id="particlePathVisible" type="checkbox" checked></label><label class="mini-toggle">Traced path <input id="particleTrailVisible" type="checkbox" checked></label><label class="mini-toggle">Velocity v <input id="particleVelocityVisible" type="checkbox" checked></label><label class="mini-toggle">Force F <input id="particleForceVisible" type="checkbox" checked></label><label class="mini-toggle">Field lines <input id="particleFieldVisible" type="checkbox" checked></label><label class="mini-toggle">3D outline <input id="particleOutlineVisible" type="checkbox" checked></label><label class="mini-toggle">Radius guide <input id="particleRadiusVisible" type="checkbox" checked></label></div>
+  </section>
+  <section class="control-card particle-results" aria-label="Physical results">
+    <div class="card-head"><strong>Calculated quantities (actual SI values)</strong><span class="particle-help" id="particleSIHelp">From selected m and q</span></div>
+    <div class="particle-results-grid"><div><span>Actual orbit radius, r</span><b id="particleRadiusResult">1.57 cm</b></div><div><span>Period, T</span><b id="particlePeriodResult">82.0 ns</b></div><div><span>Force magnitude, F</span><b id="particleForceResult">1.54 × 10⁻¹³ N</b></div><div><span>Helix pitch</span><b id="particlePitchResult">—</b></div></div>
+    <div class="particle-equation" id="particleEquation">r = mv / (|q|B) &nbsp; · &nbsp; T = 2πm / (|q|B)</div>
+  </section>
+  <section class="control-card particle-scaling" aria-label="Orbital size visualisation">
+    <div class="card-head"><strong>Orbit display scale</strong><span class="particle-help" id="particleScaleHint">Fit to the scene</span></div>
+    <div class="particle-segmented"><button type="button" id="particleFitScale" class="active" aria-pressed="true">Fit each orbit</button><button type="button" id="particleCommonScale" aria-pressed="false">Same scale</button></div>
+  </section>
+  <div class="panel-note particle-note" id="particleNote">In <b>Fit each orbit</b> mode the trajectory is enlarged or reduced so it can be studied; the displayed radius is the <b>real calculated value</b>. In <b>Same scale</b> mode, different particles use one common spatial scale (at the selected speed, angle and field). The time animation is slowed down for inspection.</div>
+</div>
+</aside>
+</div></div>
+<script>
+(() => {
+'use strict';
+const $=id=>document.getElementById(id);
+const stage=$('stage'), canvas=$('fieldCanvas'),ctx=canvas.getContext('2d',{alpha:true});
+const angleReadout=$('angleReadout'), angleNote=$('angleNote'),stateGlyph=$('stateGlyph'),stateText=$('stateText');
+const densityControl=$('density'),densityOutput=$('densityOutput'),zoomControl=$('zoom'),zoomOutput=$('zoomOutput');
+const autoRotate=$('autoRotate'),showBox=$('showBox'),showArrows=$('showArrows');
+const wireAngle=$('wireAngle'),wireTwist=$('wireTwist'),wireAngleOutput=$('wireAngleOutput'),wireTwistOutput=$('wireTwistOutput');
+const currentControl=$('current'),currentOutput=$('currentOutput'),fieldStrengthControl=$('fieldStrength'),fieldStrengthOutput=$('fieldStrengthOutput');
+const showWire=$('showWire'),showForce=$('showForce'),showMagnitude=$('showMagnitude'),showAngleArc=$('showAngleArc'),showCurrent=$('showCurrent');
+const pstate={path:'circle',species:'proton',scaleMode:'fit',speed:1.2,B:.8,angle:65,phase:0,playing:true,rate:1,fullPath:true,trail:true,velocity:true,force:true,field:true,outline:true,radiusGuide:true};
+const MASS_PROTON=1.67262192369e-27,CHARGE_E=1.602176634e-19,TAU=Math.PI*2;
+const PARTICLE_SPECIES={
+ electron:{name:'Electron, e⁻',short:'Electron',m:9.1093837139e-31,q:-1,note:''},
+ proton:{name:'Proton, p⁺',short:'Proton',m:MASS_PROTON,q:1,note:''},
+ heplus:{name:'Helium ion, He⁺',short:'He⁺',m:6.645565e-27,q:1,note:''},
+ heminus:{name:'Helium ion, He⁻',short:'He⁻',m:6.647387e-27,q:-1,note:'He⁻ is a metastable excited ion (longest-lived state: approximately 359 μs); its survival is idealised.'},
+ alpha:{name:'Alpha particle, He²⁺',short:'He²⁺',m:6.6446573357e-27,q:2,note:''}
+};
+function scientificText(n,digits=3){if(!n)return '0';const power=Math.floor(Math.log10(Math.abs(n))),a=n/Math.pow(10,power);
+ return a.toFixed(digits)+' × 10'+String(power).replace(/[-\d]/g,s=>({'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'})[s]);}
+function formatRadius(r){if(r<1e-3)return (r*1e6).toFixed(2)+' μm';if(r<1e-2)return (r*1e3).toFixed(2)+' mm';if(r<1)return (r*100).toFixed(2)+' cm';return r.toFixed(2)+' m';}
+function formatTime(t){if(t<1e-9)return (t*1e12).toFixed(2)+' ps';if(t<1e-6)return (t*1e9).toFixed(2)+' ns';if(t<1e-3)return (t*1e6).toFixed(2)+' μs';return t.toFixed(3)+' s';}
+function formatForce(f){return scientificText(f,2)+' N';}
+
+const wireBadge=$('wireBadge'),forceReadout=$('forceReadout'),forceValue=$('forceValue'),forceFormula=$('forceFormula');
+const presets=[...document.querySelectorAll('[data-preset]')];
+const modes=[...document.querySelectorAll('[data-mode]')];
+const directions={px:{v:[1,0,0],label:'right (+x)',short:'right',glyph:'→'},nx:{v:[-1,0,0],label:'left (−x)',short:'left',glyph:'←'},py:{v:[0,1,0],label:'up (+y)',short:'up',glyph:'↑'},ny:{v:[0,-1,0],label:'down (−y)',short:'down',glyph:'↓'},pz:{v:[0,0,1],label:'out of the screen (+z)',short:'out of the screen',glyph:'⊙'},nz:{v:[0,0,-1],label:'into the screen (−z)',short:'into the screen',glyph:'⊗'}};
+const wireQuestions=[
+  {I:'py',B:'px',missing:'F'}, {I:'px',B:'py',missing:'F'},
+  {I:'py',B:'nx',missing:'B'}, {I:'py',B:'pz',missing:'I'},
+  {I:'nz',B:'px',missing:'F'}, {I:'pz',B:'px',missing:'I'},
+  {I:'nx',B:'nz',missing:'B'}, {I:'pz',B:'py',missing:'F'}
+];
+const chargeQuestions=[
+  {v:'px',B:'py',q:1,missing:'F'}, {v:'px',B:'py',q:-1,missing:'F'},
+  {v:'py',B:'px',q:1,missing:'B'}, {v:'py',B:'px',q:-1,missing:'B'},
+  {v:'nz',B:'px',q:1,missing:'F'}, {v:'pz',B:'py',q:-1,missing:'v'},
+  {v:'nx',B:'pz',q:1,missing:'B'}, {v:'pz',B:'ny',q:-1,missing:'F'}
+];
+let mode='explore',quizChoice=null;
+const quizIndex={wire:0,charge:0},quizAnswers={wire:Array(wireQuestions.length).fill(null),charge:Array(chargeQuestions.length).fill(null)};
+const qSet=()=>mode==='wire'?wireQuestions:chargeQuestions;
+const getQ=()=>qSet()[quizIndex[mode]];
+const qSymbol={I:'conventional current, I',v:'velocity, v',B:'magnetic field, B',F:'magnetic force, F'};
+
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const add=(a,b)=>a.map((v,i)=>v+b[i]),sub=(a,b)=>a.map((v,i)=>v-b[i]),mul=(a,k)=>a.map(x=>x*k);
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const m=Math.hypot(...a)||1;return mul(a,1/m)};
+const smoothstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+const RAD=Math.PI/180,DEG=180/Math.PI;
+const state={density:5,arrows:true,box:true,autospin:false,wire:true,force:true,magnitude:true,arc:true,currentArrows:true,I:2,B:0.8,
+  direction:[0,Math.cos(35*RAD),Math.sin(35*RAD)],center:[0,0,0],wireLength:4.4};
+let az=Math.PI/5,el=Math.PI/8,radius=13,baseRadius=13,lastTime=0,w=1,h=1,dpr=1;
+const pointers=new Map();let pinchDistance=null,dragMode=null,hoverMode=null,lastCenterScreen=null;
+function resize(){const rect=stage.getBoundingClientRect();w=rect.width;h=rect.height;dpr=Math.min(window.devicePixelRatio||1,2.5);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(stage);
+window.addEventListener('resize',resize);resize();
+const camera=()=>{const ce=Math.cos(el),se=Math.sin(el),sa=Math.sin(az),ca=Math.cos(az);
+const position=[radius*ce*sa,radius*se,radius*ce*ca],forward=norm(mul(position,-1));
+const right=norm(cross(forward,[0,1,0])),up=norm(cross(right,forward));
+return {position,forward,right,up,toward:norm(position),focal:Math.min(w*1.15,h*1.15)};
+};
+function project(p,c){const rel=sub(p,c.position),depth=dot(rel,c.forward);if(depth<=.1)return null;return {x:w/2+dot(rel,c.right)*c.focal/depth,y:h/2-dot(rel,c.up)*c.focal/depth,depth}}
+function drawLine(a,b,color,width=2,opacity=1){if(!a||!b)return;ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.globalAlpha=opacity;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore()}
+function dotMarker(p,col='#ca6c28',r=5){if(!p)return;ctx.save();ctx.fillStyle='#fff';ctx.strokeStyle=col;ctx.lineWidth=2.8;ctx.beginPath();ctx.arc(p.x,p.y,r,0,2*Math.PI);ctx.fill();ctx.stroke();ctx.restore()}
+function drawArrow(a,b,color,thick=2.5,head=11,where=.75,opacity=1){if(!a||!b)return;const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);if(L<8)return;
+const ux=dx/L,uy=dy/L,px=-uy,py=ux;const pos=clamp(L*where,8,L-3),x=a.x+ux*pos,y=a.y+uy*pos,sz=Math.min(head,Math.max(5,L*.24));
+ctx.save();ctx.globalAlpha=opacity;ctx.strokeStyle=color;ctx.lineWidth=thick;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x-ux*sz+px*sz*.5,y-uy*sz+py*sz*.5);ctx.lineTo(x,y);ctx.lineTo(x-ux*sz-px*sz*.5,y-uy*sz-py*sz*.5);ctx.stroke();ctx.restore()}
+function drawEndon(p,toward,col,r=9,opacity=1){if(!p)return;ctx.save();ctx.globalAlpha=opacity;ctx.fillStyle='#f5fbff';ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(p.x,p.y,r,0,2*Math.PI);ctx.fill();ctx.stroke();if(toward){ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(2.6,r*.27),0,2*Math.PI);ctx.fill()}else{const d=r*.52;ctx.beginPath();ctx.moveTo(p.x-d,p.y-d);ctx.lineTo(p.x+d,p.y+d);ctx.moveTo(p.x+d,p.y-d);ctx.lineTo(p.x-d,p.y+d);ctx.stroke()}ctx.restore()}
+function drawLabel(text,p,color,dx=8,dy=-10){if(!p)return;ctx.save();ctx.textBaseline='middle';ctx.font='750 14px system-ui, sans-serif';ctx.lineWidth=4.5;ctx.strokeStyle='#f4fbff';ctx.fillStyle=color;ctx.strokeText(text,p.x+dx,p.y+dy);ctx.fillText(text,p.x+dx,p.y+dy);ctx.restore()}
+function drawGuideBox(c){
+ // Draw all 12 true 3D edges, with solid/darker foreground edges and dashed/lighter rear edges.
+ // Stronger contrast helps students track the box as they rotate the view.
+ const xx=3.9,yy=2.45,zz=2.45,verts=[];
+ for(const x of [-xx,xx])for(const y of [-yy,yy])for(const z of [-zz,zz])verts.push({world:[x,y,z],screen:project([x,y,z],c)});
+ const edges=[];
+ for(let i=0;i<verts.length;i++)for(let j=i+1;j<verts.length;j++){
+   if([0,1,2].filter(k=>verts[i].world[k]!==verts[j].world[k]).length===1&&verts[i].screen&&verts[j].screen)
+     edges.push({a:verts[i].screen,b:verts[j].screen,depth:(verts[i].screen.depth+verts[j].screen.depth)/2});
+ }
+ const minD=Math.min(...edges.map(e=>e.depth)),maxD=Math.max(...edges.map(e=>e.depth));
+ edges.sort((a,b)=>b.depth-a.depth);
+ for(const edge of edges){
+   const near=1-(edge.depth-minD)/(maxD-minD||1);
+   ctx.save();ctx.lineWidth=1.7+near*.95;ctx.strokeStyle=near>.52?'#2d668e':'#6e9bb9';
+   ctx.globalAlpha=.63+.33*near;ctx.lineCap='round';
+   if(near<.43)ctx.setLineDash([6,5]);
+   ctx.beginPath();ctx.moveTo(edge.a.x,edge.a.y);ctx.lineTo(edge.b.x,edge.b.y);ctx.stroke();ctx.restore();
+ }
+ // Corner markers make the volume legible without heavy opaque faces.
+ for(const v of verts){if(!v.screen)continue;const near=1-(v.screen.depth-minD)/(maxD-minD||1);
+   ctx.save();ctx.fillStyle='#e6f5ff';ctx.globalAlpha=.55+.35*clamp(near,0,1);
+   ctx.strokeStyle='#44789e';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(v.screen.x,v.screen.y,2.4,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();
+ }
+}
+function viewReadout(cosView){const angle=Math.acos(clamp(cosView,-1,1))*DEG;angleReadout.textContent=angle.toFixed(1)+'°';
+let text,glyph,note;
+if(cosView>.985){text='Field points toward you (out of the screen)';glyph='⊙';note='End-on · toward observer'}
+else if(cosView<-.985){text='Field points away from you (into the screen)';glyph='⊗';note='End-on · away from observer'}
+else if(Math.abs(cosView)<.10){text='Field lines viewed from the side';glyph='→';note='Side-on view'}
+else{text=cosView>0?'Field has a component toward you':'Field has a component away from you';glyph=cosView>0?'↗':'↘';note='Oblique 3D view'}
+stateText.textContent=text;stateGlyph.textContent=glyph;angleNote.textContent=note;}
+function updatePresets(){for(const button of presets){const p=button.dataset.preset;const desired=p==='side'?[0,0]:p==='toward'?[Math.PI/2,0]:p==='away'?[-Math.PI/2,0]:[Math.PI/5,Math.PI/8];
+const da=Math.atan2(Math.sin(az-desired[0]),Math.cos(az-desired[0]));button.classList.toggle('active',Math.abs(da)<.025&&Math.abs(el-desired[1])<.025)}}
+function drawField(c,intensity=1){const cosView=c.toward[0],alphaSymbol=smoothstep(.935,.992,Math.abs(cosView)),alphaLine=1-alphaSymbol;
+
+if(state.B<.001){if(state.box)drawGuideBox(c);viewReadout(cosView);return;}
+const n=state.density,extent=2.15,lines=[];
+for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+const y=lerp(-extent,extent,n===1?.5:i/(n-1)),z=lerp(-extent,extent,n===1?.5:j/(n-1));const p1=project([-3.9,y,z],c),p2=project([3.9,y,z],c),center=project([0,y,z],c);
+if(p1&&p2&&center)lines.push({p1,p2,center,depth:center.depth});}
+lines.sort((a,b)=>a.depth-b.depth);const minDepth=lines.length?Math.min(...lines.map(s=>s.depth)):1,maxDepth=lines.length?Math.max(...lines.map(s=>s.depth)):2,previous=[];
+for(const l of lines){const near=1-(l.depth-minDepth)/(maxDepth-minDepth||1),shade=.70+.28*near;
+let nearest=Infinity;for(const p of previous)nearest=Math.min(nearest,Math.hypot(l.center.x-p.x,l.center.y-p.y));
+const visibility=smoothstep(26,64,nearest);previous.push(l.center);
+if(alphaLine>.007&&visibility>.007){drawLine(l.p1,l.p2,'#185187',2.25,alphaLine*shade*visibility*intensity);if(state.arrows)drawArrow(l.p1,l.p2,'#124e83',2.6,11,.57,alphaLine*(.7+.3*near)*visibility*intensity)}
+if(alphaSymbol>.007){const markerAlpha=alphaSymbol*(.62+.38*near),scale=clamp(c.focal/(l.depth*57),.82,1.35);
+drawEndon(l.center,cosView>=0,'#164b7d',5.5*scale,markerAlpha*intensity)}
+}
+if(state.box)drawGuideBox(c);
+viewReadout(cosView);
+}
+function wireAngles(){const u=state.direction;return {theta:Math.acos(clamp(u[0],-1,1))*DEG,phi:Math.atan2(u[2],u[1])*DEG}}
+function setWireAngles(thetaDeg,phiDeg){const t=thetaDeg*RAD,ph=phiDeg*RAD;state.direction=norm([Math.cos(t),Math.sin(t)*Math.cos(ph),Math.sin(t)*Math.sin(ph)]);syncWireUI()}
+function syncWireUI(){const a=wireAngles();wireAngle.value=Math.round(a.theta);wireTwist.value=Math.round(a.phi);wireAngleOutput.textContent=a.theta.toFixed(1)+'°';wireTwistOutput.textContent=a.phi.toFixed(1)+'°';wireBadge.textContent='Wire θ = '+a.theta.toFixed(1)+'°'}
+function physics(){const u=state.direction,raw=[0,state.I*state.B*u[2],-state.I*state.B*u[1]];
+const magnitude=Math.hypot(...raw);return {magnitude,unit:norm(raw),theta:wireAngles().theta,hasForce:magnitude>1e-4};}
+function updateForceUI(ph){currentOutput.textContent=(state.I>0?'+':'')+state.I.toFixed(1)+' A';fieldStrengthOutput.textContent=state.B.toFixed(2)+' T';
+forceValue.textContent=ph.magnitude.toFixed(2)+' N/m';forceReadout.hidden=!state.magnitude;
+forceFormula.textContent=`${Math.abs(state.I).toFixed(1)} × ${state.B.toFixed(2)} × sin(${ph.theta.toFixed(1)}°)`;}
+function renderAngleArc(c){if(!state.arc||!state.wire)return;const u=state.direction,theta=Math.acos(clamp(u[0],-1,1));if(theta<.025||Math.abs(theta-Math.PI)<.025)return;
+const b=[1,0,0],perp=norm([0,u[1],u[2]]),origin=state.center,r=1.12,steps=32;
+let last=null;
+for(let i=0;i<=steps;i++){const v=add(mul(b,Math.cos(theta*i/steps)),mul(perp,Math.sin(theta*i/steps)));
+const p=project(add(origin,mul(v,r)),c);if(last)drawLine(last,p,'#cc8138',1.8,.91);last=p;}
+const mid=add(origin,mul(add(mul(b,Math.cos(theta*.5)),mul(perp,Math.sin(theta*.5))),r));drawLabel('θ',project(mid,c),'#bd6528',7,-10);}
+function renderWire(c,ph){if(!state.wire)return;const u=state.direction,center=state.center,half=state.wireLength/2;
+const a=project(add(center,mul(u,-half)),c),b=project(add(center,mul(u,half)),c),pMid=project(center,c);
+renderAngleArc(c);
+if(!a||!b||!pMid)return;
+const L=Math.hypot(b.x-a.x,b.y-a.y),orange='#ca6b2a';
+if(L>=9){drawLine(a,b,'#ffffff',10,.96);drawLine(a,b,orange,5.3,1);dotMarker(a,orange,4.8);}
+else{drawEndon(pMid,dot(u,c.toward)>=0,orange,11.5,1)}
+// Conventional current points along the +wire axis for positive I, opposite for negative I.
+if(state.currentArrows&&Math.abs(state.I)>.001){
+if(L>=25){const start=state.I>0?a:b,end=state.I>0?b:a;drawArrow(start,end,'#9b3f11',3.2,13,.61);drawLabel('I',project(add(center,mul(u,state.I>0?.65:-.65)),c),'#a34e15',8,-12)}
+else drawEndon(pMid,(state.I*dot(u,c.toward))>0,'#a34e15',9.3,.98);
+}
+if(state.force&&ph.hasForce){const len=.55+Math.min(ph.magnitude/4,1)*1.38;
+for(const t of [-.34,0,.34]){
+const loc=add(center,mul(u,t*state.wireLength)),start=project(loc,c),end=project(add(loc,mul(ph.unit,len)),c);
+if(!start||!end)continue;
+if(Math.hypot(end.x-start.x,end.y-start.y)<14){drawEndon(start,dot(ph.unit,c.toward)>=0,'#078774',9.3,1)}
+else{drawLine(start,end,'#f8fcff',7,.92);drawLine(start,end,'#078774',3.1,1);drawArrow(start,end,'#078774',3,12,.99)}
+}
+const labelPos=project(add(center,mul(ph.unit,len)),c);drawLabel('F',labelPos,'#087968',8,-11);
+}
+// The movable centre handle is above the wire so it is always easy to grab.
+if(L>=8){dotMarker(pMid,orange,8.3);ctx.save();ctx.strokeStyle=orange;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(pMid.x-3.5,pMid.y);ctx.lineTo(pMid.x+3.5,pMid.y);ctx.moveTo(pMid.x,pMid.y-3.5);ctx.lineTo(pMid.x,pMid.y+3.5);ctx.stroke();ctx.restore();
+// The +wire endpoint is a prominent drag handle.
+dotMarker(b,'#d36524',8.2);
+}
+}
+function render(){ctx.clearRect(0,0,w,h);const c=camera();if(mode==='particle'){renderParticle(c);return;}if(mode!=='explore'){drawQuiz(c);return;}const ph=physics();drawField(c);renderWire(c,ph);updateForceUI(ph);}
+function frame(t){const dt=lastTime?Math.min((t-lastTime)/1000,.06):0;lastTime=t;if(state.autospin&&!pointers.size){az+=dt*.27;updatePresets()}if(mode==='particle')advanceParticle(dt);render();requestAnimationFrame(frame)}
+function setCamera(p){const views={side:[0,0],toward:[Math.PI/2,0],away:[-Math.PI/2,0],angled:[Math.PI/5,Math.PI/8]};[az,el]=views[p];state.autospin=false;autoRotate.checked=false;updatePresets()}
+function localPoint(e){const r=canvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,lenSq=dx*dx+dy*dy||1,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/lenSq,0,1);return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy))}
+function determineMode(p,c){if(mode!=='explore'||!state.wire)return 'camera';const center=project(state.center,c),a=project(add(state.center,mul(state.direction,-state.wireLength/2)),c),b=project(add(state.center,mul(state.direction,state.wireLength/2)),c);
+if(!center||!a||!b)return 'camera';if(Math.hypot(p.x-center.x,p.y-center.y)<14)return 'move';
+if(Math.hypot(p.x-b.x,p.y-b.y)<24)return 'wire';
+if(segmentDistance(p,a,b)<13)return 'wire';return 'camera';}
+function trackballPoint(p,c,center){const R=Math.min(w,h)*.36,rx=(p.x-center.x)/R,ry=-(p.y-center.y)/R,d2=rx*rx+ry*ry;
+const z=d2<.5?Math.sqrt(1-d2):.5/Math.sqrt(d2);const v=norm([rx,ry,z]);return norm(add(add(mul(c.right,v[0]),mul(c.up,v[1])),mul(c.toward,v[2])))}
+function rotate(v,axis,angle){const cos=Math.cos(angle),sin=Math.sin(angle);return add(add(mul(v,cos),mul(cross(axis,v),sin)),mul(axis,dot(axis,v)*(1-cos)))}
+function dragWire(p0,p1,c){const center=project(state.center,c);if(!center)return;
+const u0=trackballPoint(p0,c,center),u1=trackballPoint(p1,c,center),axb=cross(u0,u1),s=Math.hypot(...axb);
+if(s<1e-6)return;const angle=Math.atan2(s,clamp(dot(u0,u1),-1,1));state.direction=norm(rotate(state.direction,mul(axb,1/s),angle));syncWireUI()}
+function dragCenter(p0,p1,c){const p=project(state.center,c);if(!p)return;const k=p.depth/c.focal;const delta=add(mul(c.right,(p1.x-p0.x)*k),mul(c.up,-(p1.y-p0.y)*k));state.center=add(state.center,delta).map((v,i)=>clamp(v,i===0?-2.3:-1.6,i===0?2.3:1.6))}
+
+// The quiz uses fixed laboratory axes. In Front view: +x is right, +y is up, +z is toward the observer.
+// The field, charge, wire and all arrows remain together while the camera orbits.
+function vecFor(key){return directions[key].v}
+function vectorKey(v){for(const k of Object.keys(directions)){if(dot(v,directions[k].v)>.999)return k}throw Error('Non-cardinal question vector: '+v)}
+function qForce(q){return norm(mul(cross(vecFor(mode==='wire'?q.I:q.v),vecFor(q.B)),mode==='charge'?q.q:1))}
+function qVector(q,k){return k==='F'?qForce(q):vecFor(q[k])}
+function qAnswer(q){return vectorKey(qVector(q,q.missing))}
+function seen(q,k){return k!==q.missing||!!quizAnswers[mode][quizIndex[mode]]}
+function qExplain(q){const f=vectorKey(qForce(q)), a=qAnswer(q),unknown=q.missing;
+const lead=mode==='wire'?'<b>Rule:</b> Point your right index finger along <i>I</i>, middle finger along <i>B</i> and thumb along the force (the direction of <i>I</i> × <i>B</i>).':
+ '<b>Rule:</b> Magnetic force is in the direction of <i>v</i> × <i>B</i> for a positive charge, and opposite for a negative charge.';
+const positiveForce=vectorKey(norm(cross(vecFor(q.v||q.I),vecFor(q.B))));
+const correction=mode==='charge'&&q.q<0 ? (unknown==='F' ? ` For a negative charge, the right-hand rule first gives ${directions[positiveForce].short} for a positive charge; reverse that result.` : ' For a negative charge, reverse the shown force to determine the direction of v × B, then use the right-hand rule to find the missing vector.') : ''; 
+const names={I:'current',v:'velocity',B:'field',F:'force'};
+const result=`The ${names[unknown]} points <b>${directions[a].label}</b>. `;
+const given=Object.keys(mode==='wire'?{I:1,B:1,F:1}:{v:1,B:1,F:1}).filter(k=>k!==unknown).map(k=>`${names[k]}: ${directions[vectorKey(qVector(q,k))].short}`).join('; ');
+return `${lead} ${result}Given ${given}, these directions satisfy the cross-product rule.${correction}`;
+}
+function makeQuizUI(){if(mode==='explore')return;const Q=getQ(),index=quizIndex[mode],arr=quizAnswers[mode],previous=arr[index],revealed=!!previous;
+ $('quizTitle').textContent=mode==='wire'?'Current-carrying wires':'Moving charged particles';
+ $('quizEyebrow').textContent=mode==='wire'?'Practice · I × B':'Practice · q(v × B)';
+ $('quizCounter').textContent=(index+1)+' / '+arr.length;
+ $('quizSituation').textContent=mode==='wire'?'Wire in a uniform magnetic field':(Q.q>0?'Positive charge (+q) in a field':'Negative charge (−q) in a field');
+ $('quizQuestion').textContent= mode==='wire' ? ({I:'Which way does conventional current flow?',B:'Which direction is the magnetic field?',F:'What is the direction of the magnetic force on the wire?'}[Q.missing]) : ({v:'What is the direction of the particle’s velocity?',B:'Which direction is the magnetic field?',F:'What is the direction of the magnetic force on the charge?'}[Q.missing]);
+ const keys=(mode==='wire'?['I','B','F']:['v','B','F']).filter(k=>k!==Q.missing);
+ $('quizKnown').innerHTML='<span>Shown:</span>'+keys.map(k=>`<span class="known-chip">${qSymbol[k]}</span>`).join('');
+ $('quizProgress').innerHTML=arr.map((r,i)=>`<span class="${r?(r.correct?'correct':'done'):''} ${i===index?'current':''}"></span>`).join('');
+ $('quizHudText').textContent=(revealed?'ANSWER REVEALED — all three vectors shown':'PREDICT '+qSymbol[Q.missing].toUpperCase())+(mode==='charge'?(Q.q>0?' · +q':' · −q'):'');
+ for(const el of document.querySelectorAll('.answer-btn')){const selected=(revealed?previous.choice:quizChoice)===el.dataset.answer;el.classList.toggle('selected',selected);el.classList.toggle('correct',revealed&&qAnswer(Q)===el.dataset.answer);el.classList.toggle('wrong',revealed&&previous.choice===el.dataset.answer&&!previous.correct&&previous.choice!=='reveal');el.disabled=revealed;el.setAttribute('aria-pressed',String(selected));}
+ $('checkPrediction').disabled=revealed||!quizChoice;
+ $('revealPrediction').disabled=revealed;
+ $('prevQuiz').disabled=index===0;
+ $('nextQuiz').disabled=index===arr.length-1;
+ $('nextQuiz').textContent=index===arr.length-1?'Last question':'Next →';
+ const attempted=arr.filter(r=>r&&r.choice!=='reveal'),correct=attempted.filter(r=>r.correct).length;
+ $('quizScore').textContent=`${correct} / ${attempted.length} correct on first attempt`;
+ $('quizFeedback').hidden=!revealed;
+ if(revealed){const right=previous.correct,teacher=previous.choice==='reveal';
+ $('quizFeedback').classList.toggle('success',right);$('quizFeedback').classList.toggle('retry',!right&&!teacher);
+ $('feedbackTitle').textContent=right?'✓ Correct prediction':teacher?'Answer revealed':`Not quite — ${directions[qAnswer(Q)].label} is correct`;
+ $('feedbackBody').innerHTML=qExplain(Q);
+ }
+}
+function setMode(next){if(mode===next)return;mode=next;state.autospin=false;autoRotate.checked=false;
+ const exploring=mode==='explore',particle=mode==='particle',quiz=!exploring&&!particle;
+ $('explorePanel').hidden=!exploring;$('quizPanel').hidden=!quiz;$('particlePanel').hidden=!particle;
+ for(const id of ['exploreTopLeft','exploreTopRight','exploreViewInfo','wireBadge'])$(id).hidden=!exploring;
+ $('quizStageHud').hidden=!quiz;$('particleStageHud').hidden=!particle;
+ $('exploreLegend').hidden=particle;$('particleLegend').hidden=!particle;$('particleCameraToolbar').hidden=!particle;$('stageFootNote').hidden=particle;
+ modes.forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ if(quiz){quizChoice=null;az=0;el=0;radius=baseRadius;zoomControl.value=100;zoomOutput.textContent='100%';makeQuizUI()}
+ else if(particle){radius=baseRadius;setParticleCamera(pstate.path==='circle'?'face':'angle');syncParticleUI()}
+ else{wireBadge.hidden=!state.wire;updatePresets()}
+}
+function setQuizIndex(idx){const n=qSet().length;quizIndex[mode]=clamp(idx,0,n-1);quizChoice=null;az=0;el=0;makeQuizUI()}
+function markQuiz(asReveal=false){const Q=getQ(),arr=quizAnswers[mode],idx=quizIndex[mode];if(arr[idx])return;
+ if(!asReveal&&!quizChoice)return;
+ arr[idx]={choice:asReveal?'reveal':quizChoice,correct:!asReveal&&quizChoice===qAnswer(Q)};
+ makeQuizUI();
+}
+function drawQuizField(c,v){const axis=v,cosView=dot(axis,c.toward),symbolAlpha=smoothstep(.925,.992,Math.abs(cosView));
+ const lineAlpha=1-symbolAlpha, cross1=norm(cross(axis,Math.abs(axis[1])>.8?[0,0,1]:[0,1,0])),cross2=norm(cross(axis,cross1));
+ const n=state.density,lines=[];
+ for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+  const a=-2.15+4.3*i/(n-1),b=-2.15+4.3*j/(n-1),pos=add(mul(cross1,a),mul(cross2,b));
+  const reach=Math.abs(axis[0])>.5?3.9:2.45;
+  const start=project(add(pos,mul(axis,-reach)),c),end=project(add(pos,mul(axis,reach)),c),mid=project(pos,c);
+  if(start&&end&&mid)lines.push({start,end,mid,depth:mid.depth});
+ }
+ lines.sort((a,b)=>a.depth-b.depth);
+ const depthmin=Math.min(...lines.map(l=>l.depth)),depthmax=Math.max(...lines.map(l=>l.depth));
+ const previous=[];
+ for(const l of lines){let closest=Infinity;for(const p of previous)closest=Math.min(closest,Math.hypot(l.mid.x-p.x,l.mid.y-p.y));previous.push(l.mid);
+  const near=1-(l.depth-depthmin)/(depthmax-depthmin||1),visibility=smoothstep(20,55,closest);
+  if(lineAlpha>.008){drawLine(l.start,l.end,'#1e5486',2.3,lineAlpha*(.72+.28*near)*visibility);
+   drawArrow(l.start,l.end,'#144c80',2.8,11,.60,lineAlpha*(.72+.28*near)*visibility);}
+  if(symbolAlpha>.008){drawEndon(l.mid,cosView>0,'#194f81',6.2,symbolAlpha*(.65+.35*near))}
+ }
+ drawGuideBox(c);
+}
+function quizArrow(c,base,vector,color,label,length=1.7,atX=0,atY=0){const p1=project(base,c),p2=project(add(base,mul(vector,length)),c);if(!p1||!p2)return;
+ const dx=p2.x-p1.x,dy=p2.y-p1.y,screenL=Math.hypot(dx,dy);
+ if(screenL<16){const shifted={x:p1.x+atX,y:p1.y+atY};if(Math.hypot(atX,atY)>5)drawLine(p1,shifted,color,1.3,.6);
+  drawEndon(shifted,dot(vector,c.toward)>0,color,11,1);
+  drawLabel(label,shifted,color,14,-13);return;}
+ drawLine(p1,p2,'#fff',8,.96);drawLine(p1,p2,color,3.7,1);drawArrow(p1,p2,color,3.8,15,.99);
+ drawLabel(label,p2,color,9,-14);
+}
+function drawQuizWire(c,q){const dir=vecFor(q.I),mid=[0,0,0],p1=project(mul(dir,-2),c),p2=project(mul(dir,2),c),midScreen=project(mid,c);
+ if(!p1||!p2||!midScreen)return;
+ const length=Math.hypot(p2.x-p1.x,p2.y-p1.y);
+ if(length>12){drawLine(p1,p2,'#ffffff',9,.98);drawLine(p1,p2,'#cc6e2d',5,1);}
+ else{if(seen(q,'I'))drawEndon(midScreen,dot(dir,c.toward)>0,'#c36b2b',11,1);else dotMarker(midScreen,'#c36b2b',11)}
+ if(seen(q,'I')){if(length>25){drawArrow(p1,p2,'#97430e',4.3,16,.68);drawLabel('I',project(mul(dir,.9),c),'#a44a1b',9,-16)}
+ else drawLabel('I',midScreen,'#a64c1c',17,-14)}
+ else drawLabel('wire',project(mul(dir,1.4),c),'#9b5a31',8,-12);
+ if(seen(q,'F')){const f=qForce(q);for(const t of (length>25?[-1.1,0,1.1]:[0]))quizArrow(c,mul(dir,t),f,'#078574','F',1.35,30,-14)}
+}
+function drawQuizCharge(c,q){const center=[0,0,0],p=project(center,c);if(!p)return;
+ // Force and velocity arrows point away from the charge's instantaneous location.
+ if(seen(q,'v'))quizArrow(c,center,vecFor(q.v),'#c46c2f','v',1.9,30,-16);
+ if(seen(q,'F'))quizArrow(c,center,qForce(q),'#078574','F',1.65,-31,16);
+ // The charge is intentionally stationary here: the two arrows describe a single instant,
+ // before the later curved-trajectory module is introduced.
+ ctx.save();ctx.fillStyle='#fffefa';ctx.strokeStyle='#a85d27';ctx.lineWidth=3;
+ ctx.beginPath();ctx.arc(p.x,p.y,12.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+ ctx.font='900 18px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#a85d27';ctx.fillText(q.q>0?'+':'−',p.x,p.y-1);ctx.restore();
+ drawLabel(q.q>0?'+q':'−q',{x:p.x+13,y:p.y+14},'#995027',4,0);
+}
+function drawQuiz(c){const q=getQ();if(seen(q,'B'))drawQuizField(c,vecFor(q.B));else drawGuideBox(c);
+ if(mode==='wire')drawQuizWire(c,q);else drawQuizCharge(c,q);
+}
+// Validate every question against the cross-product rule at startup.
+for(const [kind,questions] of [['wire',wireQuestions],['charge',chargeQuestions]])for(const q of questions){
+ const a=directions[kind==='wire'?q.I:q.v].v,b=vecFor(q.B);
+ if(Math.abs(dot(a,b))>1e-9)throw Error('Question has a non-perpendicular arrangement');
+ const f=norm(mul(cross(a,b),kind==='charge'?q.q:1));
+ if(!Object.values(directions).some(d=>dot(d.v,f)>.999))throw Error('Invalid question vector');
+}
+modes.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+document.querySelectorAll('.answer-btn').forEach(b=>b.addEventListener('click',()=>{
+ if(quizAnswers[mode][quizIndex[mode]])return;quizChoice=b.dataset.answer;makeQuizUI();
+}));
+$('checkPrediction').addEventListener('click',()=>markQuiz(false));
+$('revealPrediction').addEventListener('click',()=>markQuiz(true));
+$('prevQuiz').addEventListener('click',()=>setQuizIndex(quizIndex[mode]-1));
+$('nextQuiz').addEventListener('click',()=>setQuizIndex(quizIndex[mode]+1));
+$('resetQuiz').addEventListener('click',()=>{quizAnswers[mode]=Array(qSet().length).fill(null);setQuizIndex(0)});
+$('quizFront').addEventListener('click',()=>{az=0;el=0});
+$('quizAngled').addEventListener('click',()=>{az=.55;el=.3});
+
+canvas.addEventListener('pointerdown',e=>{const p=localPoint(e);canvas.setPointerCapture(e.pointerId);const c=camera();const mode=determineMode(p,c);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,mode});dragMode=mode;pinchDistance=null;canvas.style.cursor=mode==='move'?'move':mode==='wire'?'crosshair':'grabbing'});
+canvas.addEventListener('pointermove',e=>{const p=localPoint(e),c=camera();if(!pointers.has(e.pointerId)){const mode=determineMode(p,c);hoverMode=mode;canvas.style.cursor=mode==='move'?'move':mode==='wire'?'crosshair':'grab';return;}
+const prev=pointers.get(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,mode:prev.mode});const pts=[...pointers.values()];
+if(pts.length>=2){const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(pinchDistance)radius=clamp(radius*pinchDistance/distance,baseRadius*.65,baseRadius*1.8);pinchDistance=distance;zoomControl.value=Math.round(radius/baseRadius*100);zoomOutput.textContent=zoomControl.value+'%';return;}
+const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
+if(prev.mode==='camera'){az+=dx*.008;el=clamp(el+dy*.007,-Math.PI/2+.005,Math.PI/2-.005);updatePresets()}
+else if(prev.mode==='wire'){const r=canvas.getBoundingClientRect();dragWire({x:prev.x-r.left,y:prev.y-r.top},p,c)}
+else if(prev.mode==='move'){const r=canvas.getBoundingClientRect();dragCenter({x:prev.x-r.left,y:prev.y-r.top},p,c)}
+});
+function release(e){pointers.delete(e.pointerId);pinchDistance=null;dragMode=null;canvas.style.cursor='grab'}
+canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);
+canvas.addEventListener('wheel',e=>{e.preventDefault();radius=clamp(radius*Math.exp(e.deltaY*.001),baseRadius*.65,baseRadius*1.8);zoomControl.value=Math.round(radius/baseRadius*100);zoomOutput.textContent=zoomControl.value+'%'},{passive:false});
+presets.forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.preset)));
+wireAngle.addEventListener('input',()=>setWireAngles(+wireAngle.value,wireAngles().phi));
+wireTwist.addEventListener('input',()=>setWireAngles(wireAngles().theta,+wireTwist.value));
+$('resetWire').addEventListener('click',()=>{state.center=[0,0,0];setWireAngles(90,35)});
+currentControl.addEventListener('input',()=>{state.I=+currentControl.value});
+fieldStrengthControl.addEventListener('input',()=>{state.B=+fieldStrengthControl.value});
+showWire.addEventListener('change',()=>{state.wire=showWire.checked;wireBadge.hidden=!state.wire});
+showForce.addEventListener('change',()=>state.force=showForce.checked);
+showMagnitude.addEventListener('change',()=>state.magnitude=showMagnitude.checked);
+showAngleArc.addEventListener('change',()=>state.arc=showAngleArc.checked);
+showCurrent.addEventListener('change',()=>state.currentArrows=showCurrent.checked);
+densityControl.addEventListener('input',()=>{state.density=+densityControl.value;densityOutput.textContent=`${state.density} × ${state.density}`});
+zoomControl.addEventListener('input',()=>{radius=baseRadius*+zoomControl.value/100;zoomOutput.textContent=zoomControl.value+'%'});
+autoRotate.addEventListener('change',()=>state.autospin=autoRotate.checked);
+showBox.addEventListener('change',()=>state.box=showBox.checked);
+showArrows.addEventListener('change',()=>state.arrows=showArrows.checked);
+
+// PARTICLE MOTION. The analytic solution is a helix about B = (+B,0,0).
+// At phase 0 the velocity is (+v_parallel,+v_perp,0). For +q the
+// magnetic force initially points in -z; for -q it points in +z.
+// Display geometry is uniformly autoscaled so the complete track is visible.
+// SI radius, period, pitch, and force are always computed from physical inputs.
+function particlePhysics(){
+ const species=PARTICLE_SPECIES[pstate.species],mass=species.m,q=species.q*CHARGE_E,
+       alpha=(pstate.path==='circle'?90:pstate.angle)*RAD,
+       v=pstate.speed*1e6,vp=v*Math.sin(alpha),vpar=v*Math.cos(alpha),
+       T=TAU*mass/(Math.abs(q)*pstate.B),r=mass*vp/(Math.abs(q)*pstate.B),
+       pitch=vpar*T,F=Math.abs(q)*vp*pstate.B,turns=pstate.path==='circle'?1:2,
+       helix=pstate.path==='helix',endPhase=TAU*turns,ratio=vpar/Math.max(vp,1);
+ // 'fit': all species remain visible, while helix pitch/radius is kept true.
+ // 'common': one fixed spatial calibration for EVERY particle and condition;
+ // baseline: a proton at 1.2 × 10^6 m/s, perpendicular to B = 0.8 T
+ // has actual radius ~0.01566 m, displayed as 0.50 scene units.
+ // 'fit': renormalize the drawing so every species remains visible.
+ const commonRefR=MASS_PROTON*1.2e6/(CHARGE_E*0.8);
+ const orbitR=pstate.scaleMode==='common'?0.50*r/commonRefR:
+        Math.min(1.6,helix?6.4/Math.max(endPhase*ratio,.00001):1.6);
+ const R=orbitR,xslope=helix?R*ratio:0;
+ return {alpha,v,vp,vpar,T,r,pitch,F,turns,endPhase,R,xslope,lengthX:xslope*endPhase,
+         sign:Math.sign(q),species,charge:q,mass,helix};
+}
+function particlePoint(s,g){return [g.helix?-g.lengthX/2+g.xslope*s:0,
+  g.R*Math.sin(s),g.sign*g.R*Math.cos(s)]}
+function particleVelocityDirection(s,g){return [Math.cos(g.alpha),Math.sin(g.alpha)*Math.cos(s),
+  -g.sign*Math.sin(g.alpha)*Math.sin(s)]}
+function particleForceDirection(s,g){return [0,-Math.sin(s),-g.sign*Math.cos(s)]}
+function drawCurve3D(points,c,color,width,opacity,dashed=false){
+ ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.globalAlpha=opacity;
+ ctx.lineJoin='round';ctx.lineCap='round';if(dashed)ctx.setLineDash([6,7]);
+ let wasDrawing=false;ctx.beginPath();
+ for(const world of points){const p=project(world,c);if(!p){wasDrawing=false;continue;}
+   if(!wasDrawing){ctx.moveTo(p.x,p.y);wasDrawing=true}else ctx.lineTo(p.x,p.y);}
+ ctx.stroke();ctx.restore();
+}
+function renderParticle(c){
+ const g=particlePhysics();
+ // Reuse the original 3D field renderer; match outline visibility to this module.
+ if(pstate.field){const oldBox=state.box;state.box=pstate.outline;const oldB=state.B;state.B=pstate.B;drawField(c,.66);state.B=oldB;state.box=oldBox;}
+ else if(pstate.outline)drawGuideBox(c);
+ if(g.helix){const a=project([-3.5,0,0],c),b=project([3.5,0,0],c);
+   if(a&&b){ctx.save();ctx.globalAlpha=.75;ctx.strokeStyle='#6e94b6';ctx.lineWidth=1.6;ctx.setLineDash([5,6]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.restore();
+    drawArrow(a,b,'#46779e',2,10,.92,.65);}}
+ const phase=g.helix?Math.min(pstate.phase,g.endPhase):pstate.phase%TAU;
+ const whole=[],visited=[],N=260;
+ if(pstate.fullPath||pstate.trail){
+  for(let i=0;i<=N;i++){const s=(g.helix?g.endPhase:TAU)*i/N,point=particlePoint(s,g);
+    whole.push(point);if(s<=phase+.00001)visited.push(point);}
+  visited.push(particlePoint(phase,g));
+  if(pstate.fullPath){drawCurve3D(whole,c,'#ffffff',6,.75);drawCurve3D(whole,c,'#8969ae',2.7,.45,true)}
+  if(pstate.trail){drawCurve3D(visited,c,'#ffffff',6.2,.96);drawCurve3D(visited,c,'#7954a4',3.8,.97)}
+ }
+ const world=particlePoint(phase,g),p=project(world,c);if(!p)return;
+ if(pstate.radiusGuide){
+   const centre=[world[0],0,0],pc=project(centre,c);
+   if(pc){ctx.save();ctx.strokeStyle='#287e93';ctx.lineWidth=1.5;ctx.globalAlpha=.84;
+     ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pc.x,pc.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.setLineDash([]);
+     ctx.beginPath();ctx.fillStyle='#267c92';ctx.arc(pc.x,pc.y,3.3,0,TAU);ctx.fill();ctx.restore();
+     const midx=(p.x+pc.x)/2,midy=(p.y+pc.y)/2;
+     if(Math.hypot(p.x-pc.x,p.y-pc.y)>40){ctx.save();ctx.font='800 11px system-ui';
+       const txt='r',wide=ctx.measureText(txt).width+13;
+       ctx.fillStyle='#ffffffea';ctx.strokeStyle='#b7d9e4';ctx.lineWidth=1;
+       ctx.fillRect(midx-wide/2,midy-25,wide,19);ctx.strokeRect(midx-wide/2,midy-25,wide,19);
+       ctx.fillStyle='#256979';ctx.textAlign='center';ctx.fillText(txt,midx,midy-11);ctx.restore();}
+   }
+ }
+ const v=particleVelocityDirection(phase,g),f=particleForceDirection(phase,g);
+ // Arrows are scaled schematically, not as lengths in SI units.
+ if(pstate.velocity)quizArrow(c,world,v,'#cb6d2a','v',1.3,24,-20);
+ if(pstate.force)quizArrow(c,world,f,'#078774','F',1.25,-25,21);
+ ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#a84e22';ctx.lineWidth=3.5;
+ ctx.shadowColor='#ffffff';ctx.shadowBlur=9;ctx.beginPath();ctx.arc(p.x,p.y,13.5,0,TAU);ctx.fill();ctx.stroke();
+ ctx.shadowBlur=0;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#aa5225';ctx.font='900 20px system-ui';
+ ctx.fillText(g.sign>0?'+':'−',p.x,p.y-1);ctx.restore();
+ $('particleHudTime').textContent='t = '+formatTime(pstate.phase/TAU*g.T);
+ $('particleHudProgress').textContent=`${(pstate.phase/TAU).toFixed(2)} revolution${Math.abs(pstate.phase/TAU-1)<.001?'':'s'}`;
+}
+function advanceParticle(dt){
+ if(!pstate.playing)return;
+ // 1x = one full turn in 3.2 seconds of real playback, regardless of physical cyclotron period.
+ const cycleRate=TAU/3.2*pstate.rate,g=particlePhysics();pstate.phase+=cycleRate*dt;
+ if(g.helix&&pstate.phase>=g.endPhase){pstate.phase=g.endPhase;pstate.playing=false;}
+ if(!g.helix&&pstate.phase>=TAU*500){pstate.phase%=TAU;}
+ updateParticlePlayback();
+}
+function setParticleCamera(which){
+ if(which==='face'){az=Math.PI/2;el=0}
+ else if(which==='side'){az=0;el=0}
+ else{az=.94;el=.28}
+}
+function updateParticlePlayback(){
+ const g=particlePhysics(),done=g.helix&&pstate.phase>=g.endPhase-1e-6;
+ $('particlePlay').innerHTML=done?'↻ Replay':pstate.playing?'Pause <span aria-hidden="true">Ⅱ</span>':'Play <span aria-hidden="true">▶</span>';
+ $('particlePlaybackStatus').textContent=done?'End of displayed helix':pstate.playing?'Playing':'Paused';
+}
+function syncParticleUI(){
+ const g=particlePhysics();
+ $('particleCircle').classList.toggle('active',!g.helix);$('particleHelix').classList.toggle('active',g.helix);
+ $('particleCircle').setAttribute('aria-pressed',String(!g.helix));$('particleHelix').setAttribute('aria-pressed',String(g.helix));
+ $('particleSpecies').value=pstate.species;
+ $('particleChargeBadge').textContent=(g.species.q>0?'+':'−')+(Math.abs(g.species.q)===1?'e':Math.abs(g.species.q)+'e');
+ $('particleSpeciesMeta').textContent='m = '+scientificText(g.mass,3)+' kg · q = '+(g.charge>0?'+':'−')+scientificText(Math.abs(g.charge),3)+' C';
+ $('particleStatus').textContent=pstate.species==='heminus'?'Metastable He⁻ (τ ≈ 359 μs)':'Physical mass and charge';
+ $('particleFitScale').classList.toggle('active',pstate.scaleMode==='fit');
+ $('particleCommonScale').classList.toggle('active',pstate.scaleMode==='common');
+ $('particleFitScale').setAttribute('aria-pressed',String(pstate.scaleMode==='fit'));
+ $('particleCommonScale').setAttribute('aria-pressed',String(pstate.scaleMode==='common'));
+ $('particleScaleHint').textContent=pstate.scaleMode==='fit'?'Individually enlarged to fit':'Shared physical scale';
+ let note=g.species.note ? g.species.note+' ' : '';
+ if(pstate.scaleMode==='fit')note+='The orbital path is autoscaled to be visible. All numerical measurements are actual SI values.';
+ else note+='The same spatial scale is used for all particles and all speed/field settings. Electron orbits may be too small to see without magnification.';
+ $('particleNote').textContent=note+' Animation is slowed for inspection.';
+ $('particleTypeDescription').textContent=g.helix?'Velocity has parallel and perpendicular components':'Velocity perpendicular to B';
+ $('particleAngle').disabled=!g.helix;$('particleAngle').value=pstate.angle;
+ $('particleAngleOutput').textContent=(g.alpha*DEG).toFixed(0)+'°';
+ $('particleSpeedOutput').textContent=pstate.speed.toFixed(1)+' × 10⁶ m/s';
+ $('particleFieldOutput').textContent=pstate.B.toFixed(2)+' T';
+ $('particlePlaybackOutput').textContent=pstate.rate.toFixed(2)+'×';
+ $('particleRadiusResult').textContent=formatRadius(g.r);
+ $('particlePeriodResult').textContent=formatTime(g.T);
+ $('particleForceResult').textContent=formatForce(g.F);
+ $('particlePitchResult').textContent=g.helix?formatRadius(g.pitch):'—';
+ $('particleEquation').innerHTML=g.helix?'r = mv⊥ / (|q|B) &nbsp; · &nbsp; pitch = v∥T &nbsp; · &nbsp; T = 2πm / (|q|B)':'r = mv / (|q|B) &nbsp; · &nbsp; T = 2πm / (|q|B)';
+ $('particleHudMode').textContent=g.helix?'Helical motion':'Circular motion';
+ $('particleHudDetail').textContent=`B in +x  ·  ${g.species.name}  ·  α = ${(g.alpha*DEG).toFixed(0)}°`; 
+ updateParticlePlayback();
+}
+function resetParticlePlay(){pstate.phase=0;pstate.playing=true;syncParticleUI()}
+$('particleCircle').addEventListener('click',()=>{pstate.path='circle';setParticleCamera('face');resetParticlePlay()});
+$('particleHelix').addEventListener('click',()=>{pstate.path='helix';setParticleCamera('angle');resetParticlePlay()});
+$('particleSpecies').addEventListener('change',e=>{pstate.species=e.target.value;resetParticlePlay()});
+$('particleFitScale').addEventListener('click',()=>{pstate.scaleMode='fit';syncParticleUI()});
+$('particleCommonScale').addEventListener('click',()=>{pstate.scaleMode='common';syncParticleUI()});
+$('particleSpeed').addEventListener('input',e=>{pstate.speed=+e.target.value;resetParticlePlay()});
+$('particleField').addEventListener('input',e=>{pstate.B=+e.target.value;resetParticlePlay()});
+$('particleAngle').addEventListener('input',e=>{pstate.angle=+e.target.value;resetParticlePlay()});
+$('particlePlaybackSpeed').addEventListener('input',e=>{pstate.rate=+e.target.value;syncParticleUI()});
+$('particlePlay').addEventListener('click',()=>{const g=particlePhysics();
+ if(g.helix&&pstate.phase>=g.endPhase-1e-6)pstate.phase=0;
+ pstate.playing=!pstate.playing;updateParticlePlayback()});
+$('particleRestart').addEventListener('click',resetParticlePlay);
+$('particleStep').addEventListener('click',()=>{pstate.playing=false;const end=particlePhysics().endPhase;
+ pstate.phase=Math.min(pstate.phase+Math.PI/6,end);if(pstate.path==='circle'&&pstate.phase>=TAU)pstate.phase=0;
+ updateParticlePlayback()});
+for(const [id,key] of [['particlePathVisible','fullPath'],['particleTrailVisible','trail'],['particleVelocityVisible','velocity'],['particleForceVisible','force'],['particleFieldVisible','field'],['particleOutlineVisible','outline'],['particleRadiusVisible','radiusGuide']])
+ $(id).addEventListener('change',e=>{pstate[key]=e.target.checked});
+$('particleFace').addEventListener('click',()=>setParticleCamera('face'));
+$('particleSide').addEventListener('click',()=>setParticleCamera('side'));
+$('particleThreeD').addEventListener('click',()=>setParticleCamera('angle'));
+// Physical solution checks: F is perpendicular to v and B; F points to the helix axis.
+for(const sign of [-1,1])for(const alpha of [90,65,45])for(const s of [0,.7,2.1,5.9]){
+ const a=alpha*RAD,v=[Math.cos(a),Math.sin(a)*Math.cos(s),-sign*Math.sin(a)*Math.sin(s)],
+   f=[0,-Math.sin(s),-sign*Math.cos(s)];
+ if(Math.abs(dot(v,f))>1e-10||Math.abs(dot(f,[1,0,0]))>1e-10)throw Error('Particle magnetic force direction invalid');
+ const expected=norm(mul(cross(v,[1,0,0]),sign));
+ if(dot(expected,f)<.999999)throw Error('Particle handedness invalid');
+}
+
+syncParticleUI();syncWireUI();updatePresets();requestAnimationFrame(frame);
+})();
+</script>
+<script>window.addEventListener("load",()=>{const b=document.querySelector('[data-mode="charge"]');if(b) b.click();});</script></body>
+</html>
