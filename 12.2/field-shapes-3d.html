@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Magnetic field shapes · 3D explorer · AP Physics 2</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1927;--pane:#10283b;--line:#26485a;--text:#eff8fc;--muted:#b4ccda;--sea:#63d7ed;--amber:#f3b86b;--green:#8be0ba;--red:#fa8177}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(150deg,#0b1825,#142b3e 70%,#0b1b27);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--text)}button,select,input{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #f2c478;outline-offset:2px}
+main{max-width:1420px;margin:auto;padding:18px 22px 26px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.kicker{font-size:11px;letter-spacing:.17em;color:#76d0e6;font-weight:800;text-transform:uppercase}.top h1{font-size:clamp(22px,2.5vw,34px);line-height:1.12;margin:6px 0 5px}.top p{margin:0;color:var(--muted);font-size:13px}.topic{border:1px solid #42708b;color:#bde7f1;border-radius:99px;padding:8px 11px;font-size:12px;white-space:nowrap}.tabs{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 12px}.tabs button{border:1px solid #396071;border-radius:12px;padding:10px 13px;background:#152e40;color:#d2e8f1;font-size:13px;font-weight:730}.tabs button[aria-pressed=true]{background:#c1eaf1;color:#103147;border-color:#d3f6f9}.stagegrid{display:grid;grid-template-columns:minmax(0,1fr) 294px;gap:13px;align-items:stretch}.viewer{position:relative;align-self:start;min-width:0;background:radial-gradient(ellipse at 45% 40%,#183b53,#0a1725 73%);border:1px solid #34536a;border-radius:19px;overflow:hidden;min-height:480px}canvas{display:block;width:100%;height:510px;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.overlay{position:absolute;left:16px;top:14px;pointer-events:none;max-width:70%}.overlay strong{display:block;font-size:16px}.overlay small{display:block;margin-top:4px;color:#b2cbd8;line-height:1.4}.endhud{position:absolute;right:14px;top:14px;min-width:155px;max-width:36%;border:1px solid #5e8ca2;border-radius:13px;background:#0a2433e8;padding:10px 12px;text-align:right;pointer-events:none}.endhud[hidden]{display:none}.endhud .symbol{font-size:30px;color:#a5f5e6;font-weight:800;vertical-align:middle;margin-right:7px}.endhud .detail{font-size:12px;line-height:1.4;color:#e2f4f8;display:inline-block;vertical-align:middle;text-align:left}.endhud .detail b{display:block;color:#fff;font-size:13px}.helper{position:absolute;left:14px;bottom:13px;padding:7px 10px;border-radius:9px;background:#09202abf;color:#d0e5ed;font-size:12px;pointer-events:none}.key{position:absolute;right:13px;bottom:13px;display:flex;gap:12px;border-radius:9px;background:#082030dc;padding:7px 11px;font-size:11px;color:#d2e7ed}.key b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}.controls{border:1px solid #355971;background:#102738;border-radius:18px;padding:17px;display:flex;flex-direction:column;gap:13px}.controls h2{font-size:17px;margin:0}.controls label{font-size:12px;font-weight:700;color:#cde0e8;display:block}.controls select{width:100%;margin-top:7px;border-radius:9px;background:#1b4054;color:white;border:1px solid #46738c;padding:9px}.controlrow{display:flex;gap:8px;align-items:center}.controlrow button{border:1px solid #466f87;border-radius:9px;background:#1e4054;color:white;padding:8px 10px;font-size:12px}.controlrow button:hover{background:#285971}.range{width:100%;accent-color:#6ed4e8;margin:9px 0 2px}.toggle{display:flex;gap:9px;align-items:center;font-size:13px;color:#e3eef3}.toggle input{accent-color:#62d8e6;width:16px;height:16px}.readout{background:#09202f;border:1px solid #294c62;border-radius:12px;padding:11px 12px;font-size:12px;line-height:1.55;color:#bfd5e1}.readout strong{color:#fff}.method{margin-top:14px;padding:13px 17px;border:1px solid #395d70;border-radius:14px;background:#112b3e}.method h3{font-size:15px;margin:0 0 6px}.method p{font-size:13px;line-height:1.6;margin:4px 0;color:#d4e5ec}.method .prompt{color:#9de1d4}.tiny{font-size:11px!important;color:#afc6d3!important}footer{margin-top:10px;font-size:11px;color:#a2bdcb}.pill{background:#1f4657;border-radius:50px;padding:4px 8px;color:#bbf0ec;font-weight:730}.hide{display:none!important}@media(max-width:930px){.stagegrid{grid-template-columns:1fr}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.controls h2,.controls .readout{grid-column:1/-1}canvas{height:470px}}@media(max-width:570px){.endhud{top:75px;right:10px;max-width:54%}main{padding:13px}.top{align-items:flex-start}.topic{display:none}.tabs button{font-size:12px;padding:9px}.controls{grid-template-columns:1fr}.controls h2,.controls .readout{grid-column:auto}canvas{height:400px}.viewer{min-height:390px}.key{gap:7px}.overlay{max-width:78%}}
+</style></head><body><main><header class="top"><div><div class="kicker">AP Physics 2 · Unit 12 · Magnetic fields in 3D</div><h1>Five sources. Five field patterns.</h1><p>Rotate the view and follow the arrows. A 3D, conceptual field-line visualizer.</p></div><div class="topic">12.1 review · 12.2 · 12.3 preview</div></header>
+<nav class="tabs" role="group" aria-label="Choose magnetic field source">
+<button data-mode="charge" aria-pressed="true">Moving charge</button><button data-mode="wire" aria-pressed="false">Straight wire</button><button data-mode="bar" aria-pressed="false">Bar magnet</button><button data-mode="loop" aria-pressed="false">Single loop</button><button data-mode="solenoid" aria-pressed="false">Solenoid</button>
+</nav><div class="stagegrid"><section class="viewer" aria-label="Three dimensional magnetic field display"><canvas id="canvas" aria-label="Drag to rotate a projected 3D field diagram. Scroll to zoom."></canvas><div class="overlay"><strong id="viewerTitle">Moving charge</strong><small id="viewerDesc">Magnetic field loops surround the direction of motion.</small></div><div id="endOnHud" class="endhud" hidden aria-live="polite"><span class="symbol" id="endOnSymbol">⊙</span><span class="detail"><b id="endOnMeaning">Towards you</b><span id="endOnDirection">Conventional current</span></span></div><div class="helper">↔ Drag to orbit · Scroll to zoom · Use the end-on view buttons</div><div class="key"><span><b style="background:#64d8ea"></b>B field</span><span><b style="background:#f1b56c"></b>Source / current</span><span><b style="background:#83dbb6"></b>Direction</span></div></section>
+<aside class="controls"><h2>Explore the model</h2><div><label id="directionLabel" for="dir">Source direction</label><select id="dir"><option value="1">+z: up / counterclockwise current viewed from +z</option><option value="-1">−z: down / clockwise current viewed from +z</option></select></div><div id="chargeBox"><label for="sign">Charge sign</label><select id="sign"><option value="1">Positive (+)</option><option value="-1">Negative (−)</option></select></div><div><label for="density">Field-line detail</label><select id="density"><option value="low">Simple</option><option value="medium" selected>Standard</option><option value="high">Detailed</option></select></div><div><label for="zoom">Zoom <span id="zoomValue">100%</span></label><input class="range" id="zoom" type="range" min="55" max="155" value="100" step="5"/></div><div class="toggle"><input type="checkbox" id="arrows" checked/><label for="arrows">Show field-direction arrows</label></div><div class="toggle"><input type="checkbox" id="field" checked/><label for="field">Show field lines</label></div><div class="toggle" id="animateWrap"><input type="checkbox" id="animate" checked/><label for="animate">Animate charge motion</label></div><div><label>Viewing direction (along the source axis)</label><div class="controlrow" style="margin-top:7px;flex-wrap:wrap"><button id="endPlus" type="button" title="View along the axis from the positive z end">From +z end</button><button id="endMinus" type="button" title="View along the axis from the negative z end">From −z end</button><button id="oblique" type="button">3D angled view</button></div></div><div class="controlrow"><button id="reset" type="button">Reset view</button><button id="play" type="button">Pause</button><button id="fit" type="button">Fit drawing</button></div><div class="readout" id="readout" aria-live="polite"></div></aside></div>
+<section class="method"><h3 id="explainTitle">What am I seeing?</h3><p id="explain"></p><p class="prompt" id="question"></p><p class="tiny">Field lines are mathematical visualizations, not physical strands. The displayed number of lines is illustrative, not a calibrated field strength. Circular-wire and coil fields are derived from a numerical Biot–Savart model; the bar magnet is shown using an ideal dipole approximation. A slowly moving point charge is shown using the nonrelativistic instantaneous-field approximation. Some field lines extend beyond the drawing window, but continue as closed loops. Crossings in a projected 3D view do not mean physical field lines intersect. These models help visualize field geometry; they are not a replacement for the AP Physics 2 quantitative equations sheet.</p></section>
+<footer>Depth-ordered three-dimensional projection of computed magnetic field geometry. Fully offline; mouse, touchscreen and keyboard-accessible source controls.</footer></main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const cvs=$('canvas'),ctx=cvs.getContext('2d');
+const buttons=[...document.querySelectorAll('[data-mode]')];
+const view={mode:'charge',dir:1,sign:1,yaw:.68,pitch:.43,zoom:1,arrows:true,field:true,density:'medium',animate:true,paused:false,chargeZ:0,lastTime:0};
+const info={
+charge:{title:'A moving point charge',short:'Circular B-field loops surround the velocity axis.',label:'Charge velocity',explain:'In the slow-motion approximation, B at a point is perpendicular to the charge’s velocity and the displacement to that point. The field circles the direction of motion. The source charge moves; its field pattern follows its position.',question:'Predict: If the charge changes from + to −, but its velocity stays the same, which way will every B arrow point?'},
+wire:{title:'A long, straight current-carrying wire',short:'Concentric circles around the direction of conventional current.',label:'Conventional current',explain:'A straight wire carries many moving charges. For a long straight wire, magnetic field lines are circular loops centred on the wire. Viewed looking in the direction of conventional current, the field curls counterclockwise. Reverse the current and the B arrows reverse.',question:'Predict: Does the field curve change when you reverse the current, or just the direction of the arrows?'},
+bar:{title:'A bar magnet',short:'Outside: north → south. Inside: south → north.',label:'North-pole direction',explain:'A bar magnet acts as a magnetic dipole. Outside the magnet, B points from the north pole to the south pole. Inside, it returns from south to north, forming closed field lines. This viewer uses an ideal dipole far-field approximation; the exact near-surface geometry of a rectangular magnet is more complicated.',question:'Predict: If you flip the magnet over, what happens to the direction of B at a fixed point?'},
+loop:{title:'A single loop of current',short:'A current loop creates a magnetic dipole-like field.',label:'Current circulation',explain:'A circular current produces a field directed along the loop’s symmetry axis at its centre. Use curled right-hand fingers in the direction of conventional current: your thumb gives B through the loop. The return field bends around outside the loop.',question:'Predict: Viewed from +z, if current is counterclockwise, does B through the centre point towards or away from you?'},
+solenoid:{title:'A solenoid (current-carrying coil)',short:'Inside the coil, B is nearly uniform and axial.',label:'Current circulation',explain:'A closely wound solenoid combines the fields of many current loops. Field lines inside its central region are roughly straight, parallel and strong; they return through the space outside. Finite coils have noticeable fringing fields near both ends.',question:'Predict: What changes when you reverse the current? Does the inside field still point along the coil axis?'}
+};
+function updateUI(){let x=info[view.mode]; $('viewerTitle').textContent=x.title;$('viewerDesc').textContent=x.short;let labels=({charge:['Velocity +z (up)','Velocity −z (down)'],wire:['Current +z (up)','Current −z (down)'],bar:['North pole at +z (top)','North pole at −z (bottom)'],loop:['Counterclockwise viewed from +z','Clockwise viewed from +z'],solenoid:['Current CCW viewed from +z','Current clockwise viewed from +z']})[view.mode];$('dir').options[0].textContent=labels[0];$('dir').options[1].textContent=labels[1];$('explainTitle').textContent='What am I seeing?';$('explain').textContent=x.explain;$('question').textContent=x.question;$('directionLabel').textContent=x.label;$('chargeBox').classList.toggle('hide',view.mode!=='charge');$('animateWrap').classList.toggle('hide',view.mode!=='charge');$('play').classList.toggle('hide',view.mode!=='charge');
+ buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===view.mode)));
+ const d=view.dir>0?'+z':'−z';let text='';
+ if(view.mode==='charge')text=`<strong>Source:</strong> ${view.sign>0?'positive':'negative'} charge moving ${d}.<br><strong>Magnetic field:</strong> ${view.dir*view.sign>0?'counterclockwise':'clockwise'} around +z when viewed from +z.<br><strong>On the motion axis:</strong> B = 0 at nonzero distance in the point-charge model.`;
+ if(view.mode==='wire')text=`<strong>Current:</strong> ${d} along wire.<br><strong>Viewed from +z:</strong> B is ${view.dir>0?'counterclockwise':'clockwise'}.<br><strong>Long-wire model:</strong> B weakens with distance from wire.`;
+ if(view.mode==='bar')text=`<strong>North pole:</strong> ${view.dir>0?'top (+z)':'bottom (−z)'}.<br><strong>External B:</strong> N → S.<br><strong>Internal B:</strong> S → N (closed loops).`;
+ if(view.mode==='loop')text=`<strong>Current:</strong> ${view.dir>0?'counterclockwise':'clockwise'} when viewed from +z.<br><strong>B at centre:</strong> ${d}.<br><strong>Field:</strong> returns outside the loop.`;
+ if(view.mode==='solenoid')text=`<strong>Current:</strong> ${view.dir>0?'counterclockwise':'clockwise'} viewed from +z.<br><strong>Internal B:</strong> approximately ${d}.<br><strong>Field:</strong> curved return paths outside.`;
+ $('readout').innerHTML=text;}
+buttons.forEach(b=>b.addEventListener('click',()=>{view.mode=b.dataset.mode;view.chargeZ=0;updateUI();requestDraw()}));
+$('dir').addEventListener('change',e=>{view.dir=Number(e.target.value);updateUI();requestDraw()});$('sign').addEventListener('change',e=>{view.sign=Number(e.target.value);updateUI();requestDraw()});$('density').addEventListener('change',e=>{view.density=e.target.value;requestDraw()});$('zoom').addEventListener('input',e=>{view.zoom=Number(e.target.value)/100;$('zoomValue').textContent=e.target.value+'%';requestDraw()});$('arrows').addEventListener('change',e=>{view.arrows=e.target.checked;requestDraw()});$('field').addEventListener('change',e=>{view.field=e.target.checked;requestDraw()});$('animate').addEventListener('change',e=>view.animate=e.target.checked);
+$('endPlus').addEventListener('click',()=>{view.pitch=Math.PI/2;view.yaw=0;requestDraw()});$('endMinus').addEventListener('click',()=>{view.pitch=-Math.PI/2;view.yaw=0;requestDraw()});$('oblique').addEventListener('click',()=>{view.yaw=.68;view.pitch=.43;requestDraw()});$('reset').addEventListener('click',()=>{view.yaw=.68;view.pitch=.43;view.zoom=1;$('zoom').value=100;$('zoomValue').textContent='100%';requestDraw()});$('fit').addEventListener('click',()=>{view.zoom=view.mode==='solenoid'?.81:1;$('zoom').value=Math.round(view.zoom*100/5)*5;$('zoomValue').textContent=Math.round(view.zoom*100)+'%';requestDraw()});$('play').addEventListener('click',()=>{view.paused=!view.paused;$('play').textContent=view.paused?'Resume':'Pause'});
+let drag=null;cvs.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY,yaw:view.yaw,pitch:view.pitch};cvs.setPointerCapture(e.pointerId)});cvs.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;view.yaw=drag.yaw+(e.clientX-drag.x)*.009;view.pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,drag.pitch+(e.clientY-drag.y)*.009));requestDraw()});cvs.addEventListener('pointerup',()=>{drag=null; if(Math.abs(Math.abs(view.pitch)-Math.PI/2)<.065){view.pitch=Math.sign(view.pitch)*Math.PI/2;requestDraw()}});cvs.addEventListener('pointercancel',()=>drag=null);cvs.addEventListener('wheel',e=>{e.preventDefault();view.zoom=Math.max(.55,Math.min(1.55,view.zoom*(e.deltaY>0?.93:1.07)));$('zoom').value=Math.round(view.zoom*100/5)*5;$('zoomValue').textContent=Math.round(view.zoom*100)+'%';requestDraw()},{passive:false});
+let w=0,h=0,unit=70,needsDraw=true;function requestDraw(){needsDraw=true}
+function resize(){let b=cvs.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,2);w=b.width;h=b.height;cvs.width=Math.round(w*ratio);cvs.height=Math.round(h*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);unit=Math.min(w/8.2,h/7.2);requestDraw()}new ResizeObserver(resize).observe(cvs);window.addEventListener('resize',resize);resize();
+const V=(x,y,z)=>[x,y,z];const project=v=>{const [x,y,z]=v,co=Math.cos(view.yaw),si=Math.sin(view.yaw),ca=Math.cos(view.pitch),sa=Math.sin(view.pitch);const hor=x*co-y*si,dep=x*si+y*co,vert=z*ca-dep*sa;return [w/2+hor*unit*view.zoom,h/2-vert*unit*view.zoom,dep*ca+z*sa]};
+// Painter's algorithm: small 3D line fragments are drawn from farthest to nearest.
+// The old version drew every wire last, incorrectly obscuring field lines in front.
+const scene=[];
+function path3(pts,color='#63d6ec',alpha=.88,width=1.6,dash=null){
+ if(pts.length<2)return;
+ const chunk=width>=3?3:4;
+ for(let i=0;i<pts.length-1;i+=chunk){
+  const subset=pts.slice(i,Math.min(pts.length,i+chunk+1));
+  const q=subset.map(project);
+  scene.push({kind:'line',q,depth:q.reduce((a,b)=>a+b[2],0)/q.length,
+   color,alpha,width,dash,category:width>=3?'source':'field'});
+ }
+}
+function arrowAt(pts,index,sign=1,color='#8ae7c8',size=8){
+ if(pts.length<4)return;
+ let a=pts[Math.max(0,index-2)],b=pts[Math.min(pts.length-1,index+2)];
+ if(sign<0)[a,b]=[b,a];
+ a=project(a);b=project(b);
+ const dx=b[0]-a[0],dy=b[1]-a[1],m=Math.hypot(dx,dy);
+ if(m<2)return;
+ const x=(a[0]+b[0])/2,y=(a[1]+b[1])/2,ux=dx/m,uy=dy/m;
+ scene.push({kind:'arrow',depth:(a[2]+b[2])/2,category:'arrow',color,
+  q:[[x+ux*size*.5,y+uy*size*.5],
+  [x-ux*size*.5-uy*size*.45,y-uy*size*.5+ux*size*.45],
+  [x-ux*size*.5+uy*size*.45,y-uy*size*.5-ux*size*.45]]});
+}
+function marker3(v,rad,color,label){
+ const p=project(v);scene.push({kind:'marker',q:p,depth:p[2],rad,color,label,category:'source'});
+}
+function sceneLabel(v,text,color='#90aebe',size=12){
+ const p=project(v);scene.push({kind:'label',q:p,depth:p[2],text,color,size,category:'label'});
+}
+function fillFace(points,paint){
+ const q=points.map(project);scene.push({kind:'face',q,paint,
+  depth:q.reduce((sum,p)=>sum+p[2],0)/q.length,category:'face'});
+}
+function flushScene(){
+ // Higher camera depth is closer to the viewer. Depth sorted for all sources and field lines.
+ scene.sort((a,b)=>a.depth-b.depth);
+ for(const o of scene){
+  ctx.save();
+  if(o.kind==='line'){
+   const near=Math.max(.52,Math.min(1.12,.82+.09*o.depth));
+   ctx.globalAlpha=o.alpha*near;
+   ctx.strokeStyle=o.color;ctx.lineWidth=o.width;
+   ctx.lineCap=o.width>=3?'round':'butt';ctx.lineJoin='round';
+   if(o.dash)ctx.setLineDash(o.dash);
+   ctx.beginPath();o.q.forEach((p,i)=>{if(!i)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])});ctx.stroke();
+  } else if(o.kind==='arrow'){
+   ctx.fillStyle=o.color;
+   ctx.globalAlpha=Math.max(.58,Math.min(1,.78+.09*o.depth));
+   ctx.beginPath();o.q.forEach((p,i)=>{if(!i)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])});ctx.closePath();ctx.fill();
+  } else if(o.kind==='marker'){
+   ctx.beginPath();ctx.arc(o.q[0],o.q[1],o.rad,0,Math.PI*2);
+   ctx.fillStyle=o.color;ctx.fill();ctx.lineWidth=1.8;ctx.strokeStyle='#effbff';ctx.stroke();
+   if(o.label){ctx.fillStyle='#082338';ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.label,o.q[0],o.q[1]+.5)}
+  } else if(o.kind==='face'){
+   ctx.beginPath();o.q.forEach((p,i)=>{if(!i)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])});ctx.closePath();
+   ctx.fillStyle=o.paint;ctx.fill();ctx.strokeStyle='#ecf2f7';ctx.lineWidth=.7;ctx.stroke();
+  } else if(o.kind==='label'){
+   ctx.fillStyle=o.color;ctx.font=`bold ${o.size}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.text,o.q[0],o.q[1]);
+  }
+  ctx.restore();
+ }
+ scene.length=0;
+}
+function showEndOnDirection(){
+ const endOn=Math.abs(view.pitch)>=1.22;
+ const hud=$('endOnHud');hud.hidden=!endOn;
+ if(!endOn)return;
+ const fromPlus=view.pitch>0;
+ const toward=view.dir*(fromPlus?1:-1)>0;
+ const source=({charge:'Charge velocity',wire:'Conventional current',bar:'Dipole orientation (S→N)',loop:'Field through loop',solenoid:'Field inside coil'})[view.mode];
+ $('endOnSymbol').textContent=toward?'⊙':'⊗';
+ $('endOnMeaning').textContent=toward?'Towards you':'Away from you';
+ $('endOnDirection').textContent=source+' · '+(fromPlus?'from +z':'from −z');
+ // Show a clear symbol on the projected wire/particle axis when its length collapses in perspective.
+ if(view.mode==='wire'||view.mode==='charge'){
+  let p=project([0,0,view.mode==='charge'?view.chargeZ:0]);
+  ctx.save();ctx.fillStyle='#113246';ctx.globalAlpha=.97;
+  ctx.beginPath();ctx.arc(p[0],p[1],view.mode==='wire'?19:24,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ffe0a9';ctx.lineWidth=2;ctx.stroke();
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffdc98';ctx.font='bold 29px Arial';
+  ctx.fillText(toward?'⊙':'⊗',p[0],p[1]-1);if(view.mode==='charge'){ctx.beginPath();ctx.fillStyle=view.sign>0?'#ffd285':'#a9c8ff';ctx.arc(p[0]+19,p[1]-18,10,0,Math.PI*2);ctx.fill();ctx.textAlign='center';ctx.fillStyle='#0a2638';ctx.font='bold 16px Arial';ctx.fillText(view.sign>0?'+':'−',p[0]+19,p[1]-18)}ctx.restore();
+ }
+}
+function ring(radius,z,sign,alpha=1){const pts=[];for(let j=0;j<=140;j++){let t=2*Math.PI*j/140;pts.push(V(radius*Math.cos(t),radius*Math.sin(t),z))}path3(pts,'#71daec',alpha,1.7);if(view.arrows){for(let a of [.14,.56])arrowAt(pts,Math.floor(a*140),sign,'#b4f2de',8)}}
+function axis(){
+ if(Math.abs(view.pitch)<1.22){
+  path3([V(0,0,-2.5),V(0,0,2.5)],'#8b9eab',.35,1.2,[5,5]);
+  sceneLabel(V(0,0,2.65),'+z');
+ }
+}
+function drawWire(){axis();if(view.field){let radii=view.density==='low'?[.75,1.4]:view.density==='high'?[.4,.64,.91,1.22,1.55]:[.58,.94,1.35];let zz=view.density==='low'?[-.9,.9]:[-1.22,0,1.22];for(let z of zz){for(let r of radii)ring(r,z,view.dir,.67+(1.6-r)*.14)}}let pts=[V(0,0,-1.8),V(0,0,1.8)];path3(pts,'#ffa660',1,12);path3(pts,'#ffe8c5',.9,2);arrowAt([V(0,0,-1),V(0,0,-.5),V(0,0,.5),V(0,0,1)],2,view.dir,'#173140',13);}
+function drawCharge(){axis();if(view.field){const rrs=view.density==='low'?[.8,1.48]:view.density==='high'?[.5,.74,1.02,1.31,1.62]:[.65,1.02,1.48];const zs=view.density==='high'?[-.95,-.45,0,.45,.95]:[-.75,0,.75];for(let z of zs){for(let r of rrs){let alpha=Math.max(.32,.86-.13*Math.abs(z)-.1*r);ring(r,view.chargeZ+z,view.dir*view.sign,alpha)}}}let p=V(0,0,view.chargeZ);marker3(p,13,view.sign>0?'#ffc47e':'#8eaffb',view.sign>0?'+':'−');arrowAt([V(0,0,view.chargeZ-.5),V(0,0,view.chargeZ-.25),V(0,0,view.chargeZ+.25),V(0,0,view.chargeZ+.5)],2,view.dir,'#fff2a1',12)}
+function drawBarBody(){
+ const sides=[[-.34,-.34],[.34,-.34],[.34,.34],[-.34,.34]];
+ function face(z0,z1,paint){
+  const verts=sides.map(([x,y])=>V(x,y,z0)),verts2=sides.map(([x,y])=>V(x,y,z1));
+  for(let i=0;i<4;i++){const j=(i+1)%4;fillFace([verts[i],verts[j],verts2[j],verts2[i]],paint)}
+  fillFace(verts,paint);fillFace(verts2,paint);
+ }
+ const topIsN=view.dir>0;
+ face(-.9,0,topIsN?'#6085b6':'#e3716c');face(0,.9,topIsN?'#e3716c':'#6085b6');
+ for(const [z,word] of [[-.5,topIsN?'S':'N'],[.5,topIsN?'N':'S']])sceneLabel(V(0,.38,z),word,'#ffffff',17);
+}
+function dipolePaths(){const cs=view.density==='low'?[1.37,2.18,3.25]:view.density==='high'?[1.1,1.4,1.75,2.13,2.54,3.2]:[1.12,1.53,2.04,2.75];let paths=[];for(let C of cs){let p=[];for(let j=0;j<=240;j++){let t=.035+(Math.PI-.07)*j/240,R=C*Math.sin(t)**2;p.push([R*Math.sin(t),R*Math.cos(t)])}paths.push(p)}return paths}
+function drawBar(){axis();if(view.field){const azis=view.density==='low'?[0,Math.PI/2,Math.PI]:[0,Math.PI/2,Math.PI,3*Math.PI/2];for(let path of dipolePaths())for(let az of azis){let pts=path.map(([r,z])=>V(r*Math.cos(az),r*Math.sin(az),z));path3(pts,'#69d9eb',.62,1.75);if(view.arrows)for(let u of [.34,.65])arrowAt(pts,Math.round((pts.length-1)*u),view.dir,'#b9efca',8)}for(let ang of [0,Math.PI/2,Math.PI,3*Math.PI/2])path3([V(.2*Math.cos(ang),.2*Math.sin(ang),-.85),V(.2*Math.cos(ang),.2*Math.sin(ang),.85)],'#58cbdc',.3,1.1)}drawBarBody()}
+function psiLoop(r,z,zo,a,cos){if(r<.00001)return 0;let sum=0;for(let k=0;k<cos.length;k++){const c=cos[k];sum+=c/Math.sqrt(a*a+r*r-2*a*r*c+(z-zo)**2+.0036)}return a*r*sum*(2*Math.PI/cos.length)}
+function buildFlux(coil){const N=coil?67:61,nr=118,nz=170,rmax=4.4,zmax=4.3,cos=Float64Array.from({length:N},(_,k)=>Math.cos(2*Math.PI*(k+.5)/N));let values=new Float32Array((nr+1)*(nz+1));const aa=coil?.79:1.04,zz=coil?Array.from({length:9},(_,i)=>-1.36+i*.34):[0];function ix(i,j){return j*(nr+1)+i}for(let j=0;j<=nz;j++){let z=-zmax+2*zmax*j/nz;for(let i=0;i<=nr;i++){let r=rmax*i/nr,sum=0;for(let zo of zz)sum+=psiLoop(r,z,zo,aa,cos);values[ix(i,j)]=sum}}
+function interp(r,z){let fx=Math.min(nr-.00001,Math.max(0,r/rmax*nr)),fy=Math.min(nz-.00001,Math.max(0,(z+zmax)/(2*zmax)*nz)),i=Math.floor(fx),j=Math.floor(fy),a=fx-i,b=fy-j;return (1-a)*(1-b)*values[ix(i,j)]+a*(1-b)*values[ix(i+1,j)]+(1-a)*b*values[ix(i,j+1)]+a*b*values[ix(i+1,j+1)]}
+return{nr,nz,rmax,zmax,values,ix,interp,coil}}
+function contour(flux,level){const{nr,nz,rmax,zmax,values,ix}=flux,nodes=new Map();function addNode(key,p){if(!nodes.has(key))nodes.set(key,{p,links:[]})}
+function link(a,b){nodes.get(a).links.push(b);nodes.get(b).links.push(a)}
+const pts=(i,j)=>[[i*rmax/nr,-zmax+j*2*zmax/nz],[(i+1)*rmax/nr,-zmax+j*2*zmax/nz],[(i+1)*rmax/nr,-zmax+(j+1)*2*zmax/nz],[i*rmax/nr,-zmax+(j+1)*2*zmax/nz]];
+for(let j=0;j<nz;j++)for(let i=0;i<nr;i++){let vs=[values[ix(i,j)],values[ix(i+1,j)],values[ix(i+1,j+1)],values[ix(i,j+1)]];let corners=pts(i,j),edges=[];for(let e=0;e<4;e++){const a=e,b=(e+1)%4;if((vs[a]<=level)===(vs[b]<=level))continue;let t=(level-vs[a])/(vs[b]-vs[a]),p=[corners[a][0]+t*(corners[b][0]-corners[a][0]),corners[a][1]+t*(corners[b][1]-corners[a][1])],key=[`h_${i}_${j}`,`v_${i+1}_${j}`,`h_${i}_${j+1}`,`v_${i}_${j}`][e];addNode(key,p);edges.push(key)}if(edges.length===2)link(edges[0],edges[1]);else if(edges.length===4){link(edges[0],edges[1]);link(edges[2],edges[3])}}
+let used=new Set(),paths=[];for(let [key,node] of nodes){if(used.has(key)||node.links.length===0)continue;let path=[],cur=key,prev=null;for(let steps=0;steps<3000;steps++){const o=nodes.get(cur);if(!o||used.has(cur))break;used.add(cur);path.push(o.p);const next=o.links.find(k=>k!==prev&&!used.has(k));if(next===undefined)break;prev=cur;cur=next}if(path.length>30)paths.push(path)}return paths}
+const grids={};function getField(coil){const id=coil?'solenoid':'loop';if(grids[id])return grids[id];const field=buildFlux(coil);let rseeds=coil?[.24,.36,.48,.60,.7]:[.28,.41,.53,.66,.78];const levels=rseeds.map(r=>field.interp(r,0));const paths=[];for(let level of levels){let c=contour(field,level);c.sort((a,b)=>b.length-a.length);for(let p of c.slice(0,1))paths.push(p)}return grids[id]={field,paths}}
+function fieldDirection(field,path){if(path.length<4)return 1;const i=Math.floor(path.length*.37),[r,z]=path[i],[r0,z0]=path[Math.max(0,i-2)],[r1,z1]=path[Math.min(path.length-1,i+2)];const eps=.04,B_r=-(field.interp(r,z+eps)-field.interp(r,z-eps))/(2*eps),B_z=(field.interp(r+eps,z)-field.interp(Math.max(0,r-eps),z))/(2*eps);return (B_r*(r1-r0)+B_z*(z1-z0))>=0?1:-1}
+function drawCoil(coil){axis();const id=getField(coil),phis=view.density==='low'?[0,Math.PI/2,Math.PI]:view.density==='high'?[0,Math.PI/3,2*Math.PI/3,Math.PI,4*Math.PI/3,5*Math.PI/3]:[0,Math.PI/2,Math.PI,3*Math.PI/2];if(view.field){for(let pp of id.paths){let stride=Math.max(1,Math.floor(pp.length/230)),path=pp.filter((_,i)=>i%stride===0),sign=fieldDirection(id.field,path)*view.dir;for(let phi of phis){let pts=path.map(([r,z])=>V(r*Math.cos(phi),r*Math.sin(phi),z));path3(pts,'#68d6ef',.64,1.7);if(view.arrows)for(let fraction of [.23,.66])arrowAt(pts,Math.floor((pts.length-1)*fraction),sign,'#a6f4dc',8)}}}
+let len=coil?1.35:0,turns=coil?9:1,radius=coil?.79:1.04,n=coil?1100:160;let wire=[];for(let j=0;j<=n;j++){let t=j/n,phi=2*Math.PI*turns*t;wire.push(V(radius*Math.cos(phi),radius*Math.sin(phi),coil?(-len+2*len*t):0))}path3(wire,'#f2a861',.94,4.5);path3(wire,'#ffddb1',.8,1.4);if(view.arrows){for(let f of (coil?[.24,.5,.77]:[.13,.63]))arrowAt(wire,Math.floor(f*n),view.dir,'#ffedbe',11)}if(coil){let a=V(.79,0,-1.36),b=V(.79,0,1.36);marker3(a,4,'#fff4d4',null);marker3(b,4,'#fff4d4',null)}}
+function background(){ctx.clearRect(0,0,w,h);let g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*.75);g.addColorStop(0,'#1c3f54');g.addColorStop(1,'#071725');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.strokeStyle='#7296a4';ctx.globalAlpha=.09;ctx.lineWidth=1;for(let i=1;i<=7;i++){const y=h*i/8;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.globalAlpha=1}
+function draw(){if(!w||!h)return;scene.length=0;background();if(view.mode==='charge')drawCharge();if(view.mode==='wire')drawWire();if(view.mode==='bar')drawBar();if(view.mode==='loop')drawCoil(false);if(view.mode==='solenoid')drawCoil(true);flushScene();showEndOnDirection()}
+function frame(time){if(!view.lastRender) view.lastRender=time;let dt=Math.min(.06,(time-(view.lastTime||time))/1000);view.lastTime=time;if(view.mode==='charge'&&view.animate&&!view.paused){view.chargeZ+=dt*view.dir*.36;if(view.chargeZ>1.0)view.chargeZ=-1.0;if(view.chargeZ< -1.0)view.chargeZ=1;needsDraw=true}if(needsDraw&&(time-view.lastRender>=32)){draw();needsDraw=false;view.lastRender=time}requestAnimationFrame(frame)}
+updateUI();requestAnimationFrame(frame);
+})();</script></body></html>
